@@ -7,7 +7,7 @@
 #stdin, stdout, stderr = ssh.exec_command(cmd_to_execute)
 
 from paramiko import SSHClient, AutoAddPolicy
-
+MINE = "3"
 
 def Connect(ip,username='pi',pw='1357'):
     print('connecting to {}@{}...'.format(username,ip))
@@ -29,13 +29,16 @@ def SendCommand(ssh,command, pw='1357'):
 myssh = Connect(ip='192.168.1.2')
 #SendCommand(myssh, command='touch detect.txt')
 
-data='node3 detection'
 #SendCommand(myssh, command='cp node3.txt detect.txt')
 
 #SendCommand(myssh, command='touch detect2.txt')
-SendCommand(myssh, command='vim -c "%s/node/node3 detection/g" -c "wq" detect.txt')
 
-#fb = open('detect.txt','w')
-#fb.write(data + '\n')
-#fb.close()
+FROM = "4" # sourcenode
+replaceString = MINE + "from" + FROM
+cmd = "vim -c \"%s/node/"+replaceString+"/g\" -c \"wq\" detect.txt"
+SendCommand(myssh, command=cmd)
+#SendCommand(myssh, command='vim -c "%s/node/3from4/g" -c "wq" detect.txt')
 
+#SendCommand(myssh, command='%s/foo\(\w\+\)Bar/& = \1 + \1\Old/')
+            
+            
