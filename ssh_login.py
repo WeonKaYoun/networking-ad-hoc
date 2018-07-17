@@ -27,14 +27,15 @@ def SendCommand(ssh,command, pw='1357'):
     print('\nstderr:',stderr.read())
 
 myssh = Connect(ip='192.168.1.2')
-SendCommand(myssh, command='touch detect.txt')
+#SendCommand(myssh, command='touch detect.txt')
 
 data='node3 detection'
-SendCommand(myssh, command='xdg-open detect.txt')
-#SendCommand(myssh, command='nano detect.txt')
+#SendCommand(myssh, command='cp node3.txt detect.txt')
+
+#SendCommand(myssh, command='touch detect2.txt')
+SendCommand(myssh, command='vim -c "%s/node/node3 detection/g" -c "wq" detect.txt')
 
 #fb = open('detect.txt','w')
 #fb.write(data + '\n')
 #fb.close()
-
 
