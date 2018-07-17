@@ -34,18 +34,20 @@ def routeDetection(myssh, srcNode) :
 # check detection recursively
 # if line is "node" -> no detection
 # else detection -> route detection to neighbor node
+# nodes[0] : neighbor node
+# nodes[1] : source node
 def checkDetection() :
     f = open(INPUT_FILE,'r+')
     line = f.readline()
     if line == NO_DETECTION :
         f.close()
     else :
-        neighborNode,srcNode = line.split("from")
-        destPi = ROUTING_TABLE[neighborNode]
+        nodes = line.split("from")
+        destPi = ROUTING_TABLE[nodes[0]]
         myssh = connectToPi(ip=IP_TABLE[destPi])
-        routeDetection(myssh, srcNode)
+        routeDetection(myssh, nodes[1])
         f.write(NO_DETECTION)
         f.close()
-    checkDetection()
+    #checkDetection()
 
 checkDetection()
