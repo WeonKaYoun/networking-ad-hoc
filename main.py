@@ -1,13 +1,14 @@
 from paramiko import SSHClient, AutoAddPolicy
+import random
 
-#process 3
 NO_DETECTION = "node"
 INPUT_FILE = "/home/pi/detect.txt"
 
-#third node side
-MINE = "3"
-ROUTING_TABLE = {'1':2, '2':1}
-IP_TABLE = {1:'192.168.1.1', 2:'192.168.1.2'}
+#first node side
+MINE = "1"
+ROUTING_TABLE = {'3':2, '2':3}
+ROUTE_PATH = '192.168.1.2'
+IP_TABLE = {3:'192.168.1.3', 2:'192.168.1.2'}
 
 def connectToPi(ip, username='pi', pw='1357') :
     print('connecting to {}@{}...'.format(username,ip))
@@ -38,7 +39,7 @@ def routeDetection(myssh, srcNode) :
 # else detection -> route detection to neighbor node
 # nodes[0] : neighbor node
 # nodes[1] : source node
-def checkDetection() :
+def checkDetection() : # for process 3
     f = open(INPUT_FILE,'r')
     line = f.readline()
     if line == NO_DETECTION :
@@ -54,5 +55,20 @@ def checkDetection() :
         f.close()
     #checkDetection()
 
-checkDetection()
+def isDanger() : # for process 2
+    randNum = random.randrange(0,2)
+    # if danger > 1
+    # else 0
+    return randNum
+
+def checkWav() : # for process 2
+    check = isDanger()
+    print(check)
+    if check == 1 :
+        # should route danger to neighbor node
+        myssh = connectToPi(ip=ROUTE_PATH)
+        routeDetection(myssh, MINE)
+
+checkWav() # for process 2
+checkDetection() # for process 3
 #myssh = connectToPi(ip='192.168.1.1')
