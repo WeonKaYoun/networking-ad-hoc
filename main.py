@@ -77,19 +77,19 @@ def adHocNetwork(dest, src) :
     time.sleep(random.random())
 
 def checkDetection() : # for part 3
-    f = open(INPUT_FILE,'r')
-    line = f.readline()
-    if line == NO_DETECTION :
-        f.close()
-    else :
-        nodes = line.split("from")
-        f.close()
-        destPi = ROUTING_TABLE[nodes[0]]
-        adHocNetwork(IP_TABLE[destPi], nodes[1])
-        f = open(INPUT_FILE,'w+')
-        f.write(NO_DETECTION)
-        f.close()
-    checkDetection()
+    while True :
+        f = open(INPUT_FILE,'r')
+        line = f.readline()
+        if line == NO_DETECTION :
+            f.close()
+        else :
+            nodes = line.split("from")
+            f.close()
+            destPi = ROUTING_TABLE[nodes[0]]
+            adHocNetwork(IP_TABLE[destPi], nodes[1])
+            f = open(INPUT_FILE,'w+')
+            f.write(NO_DETECTION)
+            f.close()
 
 def isDanger() : # for part 2
     randNum = random.randrange(0,2)
@@ -106,6 +106,17 @@ def checkWav(sound) : # for part 2
     if check == 1 :
         # should route danger to neighbor node
         adHocNetwork(ROUTE_PATH, MINE)
+        
+def soundRecord() :
+    print("start to record the audio.")
+    frames = []
+        
+    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+        data = stream.read(CHUNK)
+        frames.append(data)
+    
+    print("Recording finished.")
+    return b''.join(frames)
 
 class ProducerThread(Thread):
     def run(self):
@@ -130,16 +141,7 @@ class ProducerThread(Thread):
             condition.release()
             time.sleep(random.random())
             
-    def soundRecord() :
-        print("start to record the audio.")
-        frames = []
-        
-        for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-            data = stream.read(CHUNK)
-            frames.append(data)
     
-        print("Recording finished.")
-        return b''.join(frames)
             
 class ConsumerThread(Thread):
     def run(self):
