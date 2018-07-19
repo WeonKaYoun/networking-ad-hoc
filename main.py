@@ -29,15 +29,15 @@ condition = Condition()
 in_queue = 0
 out_queue = 0
 count = 0
+isWork=0
 #var for part 1 ends
 
 #first node side
-MINE = "1"
-ROUTING_TABLE = {'3':2, '2':3}
-ROUTE_PATH = '192.168.1.2'
-IP_TABLE = {3:'192.168.1.3', 2:'192.168.1.2'}
+MINE = "3"
+ROUTING_TABLE = {'1':2, '2':1}
+ROUTE_PATH = '192.168.1.1'
+IP_TABLE = {1:'192.168.1.1', 2:'192.168.1.2'}
 
-isWork = 0
 
 def connectToPi(ip, username='pi', pw='1357') :
     print('connecting to {}@{}...'.format(username,ip))
@@ -77,7 +77,7 @@ def adHocNetwork(dest, src) :
     time.sleep(random.random())
 
 def checkDetection() : # for part 3
-    while True :
+    while True:
         f = open(INPUT_FILE,'r')
         line = f.readline()
         if line == NO_DETECTION :
@@ -90,6 +90,7 @@ def checkDetection() : # for part 3
             f = open(INPUT_FILE,'w+')
             f.write(NO_DETECTION)
             f.close()
+    #checkDetection()
 
 def isDanger() : # for part 2
     randNum = random.randrange(0,2)
@@ -99,6 +100,7 @@ def isDanger() : # for part 2
 
 def checkWav(sound) : # for part 2
     # check sound
+    global isWork
     isWork = isWork+1
     print(isWork)
     check = isDanger()
@@ -106,7 +108,7 @@ def checkWav(sound) : # for part 2
     if check == 1 :
         # should route danger to neighbor node
         adHocNetwork(ROUTE_PATH, MINE)
-        
+
 def soundRecord() :
     print("start to record the audio.")
     frames = []
@@ -140,8 +142,6 @@ class ProducerThread(Thread):
             condition.notify()
             condition.release()
             time.sleep(random.random())
-            
-    
             
 class ConsumerThread(Thread):
     def run(self):
