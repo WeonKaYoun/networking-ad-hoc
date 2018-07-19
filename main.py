@@ -69,8 +69,12 @@ def routeDetection(myssh, srcNode) :
 # nodes[0] : neighbor node
 # nodes[1] : source node
 def adHocNetwork(dest, src) :
+    condition.acquire()
     myssh = connectToPi(ip=dest)
     routeDetection(myssh, src)
+    condition.notify()
+    condition.release()
+    time.sleep(random.random())
 
 def checkDetection() : # for part 3
     f = open(INPUT_FILE,'r')
@@ -151,16 +155,12 @@ class ConsumerThread(Thread):
                 print ("Producer added something to queue and notifed the consumer")
             output = queue[out_queue]
             out_queue = (out_queue+1) % MAX_NUM
-            
-            checkWav(output)
-            
             print ("Consumed",output)
             condition.notify()
             condition.release()
+            checkWav(output)
             time.sleep(random.random())
     
-    
-
 
 ProducerThread().start()
 
