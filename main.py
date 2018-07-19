@@ -1,14 +1,43 @@
 from paramiko import SSHClient, AutoAddPolicy
 import random
+import pyaudio
+import wave
+from threading import Thread, Condition
+import time
 
 NO_DETECTION = "node"
 INPUT_FILE = "/home/pi/detect.txt"
+
+# var for part 1 starts
+CHUNK = 1024
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+RECORD_SECONDS = 0.2
+
+p = pyaudio.PyAudio()
+
+stream = p.open(format = FORMAT,
+                channels = CHANNELS,
+                rate = RATE,
+                input = True,
+                frames_per_buffer = CHUNK)
+
+MAX_NUM=10
+queue = [None]*MAX_NUM
+condition = Condition()
+in_queue = 0
+out_queue = 0
+count = 0
+#var for part 1 ends
 
 #first node side
 MINE = "1"
 ROUTING_TABLE = {'3':2, '2':3}
 ROUTE_PATH = '192.168.1.2'
 IP_TABLE = {3:'192.168.1.3', 2:'192.168.1.2'}
+
+isWork = 0
 
 def connectToPi(ip, username='pi', pw='1357') :
     print('connecting to {}@{}...'.format(username,ip))
@@ -39,7 +68,11 @@ def routeDetection(myssh, srcNode) :
 # else detection -> route detection to neighbor node
 # nodes[0] : neighbor node
 # nodes[1] : source node
-def checkDetection() : # for process 3
+def adHocNetwork(dest, src) :
+    myssh = connectToPi(ip=dest)
+    routeDetection(myssh, src)
+
+def checkDetection() : # for part 3
     f = open(INPUT_FILE,'r')
     line = f.readline()
     if line == NO_DETECTION :
@@ -48,27 +81,91 @@ def checkDetection() : # for process 3
         nodes = line.split("from")
         f.close()
         destPi = ROUTING_TABLE[nodes[0]]
-        myssh = connectToPi(ip=IP_TABLE[destPi])
-        routeDetection(myssh, nodes[1])
+        adHocNetwork(IP_TABLE[destPi], nodes[1])
         f = open(INPUT_FILE,'w+')
         f.write(NO_DETECTION)
         f.close()
-    #checkDetection()
+    checkDetection()
 
-def isDanger() : # for process 2
+def isDanger() : # for part 2
     randNum = random.randrange(0,2)
     # if danger > 1
     # else 0
     return randNum
 
-def checkWav() : # for process 2
+def checkWav(sound) : # for part 2
+    # check sound
+    isWork = isWork+1
+    print(isWork)
     check = isDanger()
     print(check)
     if check == 1 :
         # should route danger to neighbor node
-        myssh = connectToPi(ip=ROUTE_PATH)
-        routeDetection(myssh, MINE)
+        adHocNetwork(ROUTE_PATH, MINE)
 
-checkWav() # for process 2
-checkDetection() # for process 3
-#myssh = connectToPi(ip='192.168.1.1')
+class ProducerThread(Thread):
+    def run(self):
+        nums=range(5)
+        global queue
+        global count
+        global in_queue
+        global out_queue
+        while True:
+            condition.acquire()
+            if count == MAX_NUM:
+                print('Queue full, producer is waiting')
+                condition.wait()
+                print("Space in queue, Consumer notified the producer")
+            input = soundRecord()
+            queue[in_queue]= input
+            in_queue = (in_queue+1)%MAX_NUM
+            count +=1
+            print("Produced",input)
+            
+            condition.notify()
+            condition.release()
+            time.sleep(random.random())
+            
+    def soundRecord() :
+        print("start to record the audio.")
+        frames = []
+        
+        for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+            data = stream.read(CHUNK)
+            frames.append(data)
+    
+        print("Recording finished.")
+        return b''.join(frames)
+            
+class ConsumerThread(Thread):
+    def run(self):
+        global queue
+        global count
+        global in_queue
+        global out_queue
+        while True:
+            condition.acquire()
+            if count == 0:
+                print ("Nothing in queue, consumer is waiting")
+                condition.wait()
+                print ("Producer added something to queue and notifed the consumer")
+            output = queue[out_queue]
+            out_queue = (out_queue+1) % MAX_NUM
+            
+            checkWav(output)
+            
+            print ("Consumed",output)
+            condition.notify()
+            condition.release()
+            time.sleep(random.random())
+    
+    
+
+
+ProducerThread().start()
+
+consumerList = [ConsumerThread() for i in range(0,10)]
+for i in range(0,10):
+    consumerList[i].start()
+
+checkDetection() # for part 3
