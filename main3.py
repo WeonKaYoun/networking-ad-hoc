@@ -34,7 +34,7 @@ count = 0
 isWork=0
 #var for part 1 ends
 
-#first node side
+#third node side
 MINE = "3"
 ROUTING_TABLE = {'1':2, '2':1}
 ROUTE_PATH = '192.168.1.1'
@@ -107,7 +107,8 @@ def isDanger() : # for part 2
     randNum = random.randrange(0,2)
     # if danger > 1
     # else 0
-    return randNum
+    #return randNum
+    return 1
 
 def checkWav(sound) : # for part 2
     # check sound
