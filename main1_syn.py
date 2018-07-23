@@ -6,7 +6,7 @@ from threading import Thread, Condition
 import time
 
 NO_DETECTION = "node"
-INPUT_FILE = {"/home/pi/detect1.txt", "/home/pi/detect2.txt", "/home/pi/detect3.txt", "/home/pi/detect4.txt", "/home/pi/detect5.txt"}
+INPUT_FILE = ["/home/pi/detect1.txt", "/home/pi/detect2.txt", "/home/pi/detect3.txt", "/home/pi/detect4.txt", "/home/pi/detect5.txt"]
 NUM_OF_FILE = 5
 TARGET_MINE = 0
 TARGET_OTHER = 0
@@ -63,6 +63,7 @@ def sendCommand(ssh, command, pw='1357') :
 # routing detection to destNode
 # write [MINE] + from + [srcNode] in detect.txt
 def routeDetection(myssh, srcNode) :
+    global TARGET_OTHER
     replaceStr = MINE + "from" +srcNode
     #cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" detect.txt"
     cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" " + INPUT_FILE[TARGET_OTHER]+"/"
@@ -85,6 +86,7 @@ def adHocNetwork(dest, src) :
     time.sleep(random.random())
 
 def checkDetection() : # for part 3
+    global TARGET_MINE
     while True:
         f = open(INPUT_FILE[TARGET_MINE],'r')
         line = f.readline()
