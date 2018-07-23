@@ -69,12 +69,11 @@ def routeDetection(myssh, srcNode) :
     global TARGET_OTHER
     global TARGET_MINE
     replaceStr = MINE + "from" +srcNode
-    
-    #cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" detect.txt"
-    
-    cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" " + INPUT_FILE[TARGET_OTHER] +"/"
+    input_file = INPUT_FILE[TARGET_OTHER].split("/home/pi")
+    cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" " + input_file[1] +""
+    #print("JUST WROTE" + replaceStr + "It's target was " + str(TARGET_OTHER))
     TARGET_OTHER = (TARGET_OTHER +1) % NUM_OF_FILE
-    sendCommand(myssh, command=cmd)
+    sendCommand(myssh, command=newcmd)
     
 # check detection recursively
 # if line is "node" -> no detection
@@ -105,7 +104,8 @@ def checkDetection() : # for part 3
             nodes = line.split("from")
             f.close()
             destPi = ROUTING_TABLE[nodes[0]]
-            adHocNetwork(IP_TABLE[destPi], nodes[1])
+            #adHocNetwork(IP_TABLE[destPi], nodes[1])
+            adHocNetwork(ROUTE_PATH,nodes[1])
             print("in check detect fuck nodes[0]" , nodes[0])
             print("in check detect fuck nodes[1]", nodes[1])
             print("in check detect fuck destPi", destPi)
@@ -159,7 +159,8 @@ class ProducerThread(Thread):
                 print('Queue full, producer is waiting')
                 condition_queue.wait()
                 print("Space in queue, Consumer notified the producer")
-            input = soundRecord()
+            #input = soundRecord()
+            input=1
             queue[in_queue]= input
             in_queue = (in_queue+1)%MAX_NUM
             count +=1
