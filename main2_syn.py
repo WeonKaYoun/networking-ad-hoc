@@ -6,12 +6,12 @@ from threading import Thread, Condition
 import time
 
 NO_DETECTION = "node"
-INPUT_FILE = ["/home/pi/detect1.txt", "/home/pi/detect2.txt", "/home/pi/detect3.txt", "/home/pi/detect4.txt", "/home/pi/detect5.txt"]
-NUM_OF_FILE = 5
-TARGET_MINE = 0
-TARGET_OTHER = 0
-
+INPUT_FILE = ["/home/pi/detect1.txt","/home/pi/detect2.txt","/home/pi/detect3.txt","/home/pi/detect4.txt","/home/pi/detect5.txt"]
+TARGET_MINE=0
+TARGET_OTHER=0;
+NUM_OF_FILE=5
 # var for part 1 starts
+
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
@@ -34,23 +34,26 @@ condition_detect = Condition()
 in_queue = 0
 out_queue = 0
 count = 0
-isWork=0
+isWork = 0
 #var for part 1 ends
 
-#first node side
-MINE = "1"
-ROUTING_TABLE = {'3':2, '2':3}
-ROUTE_PATH = '192.168.1.2'
-IP_TABLE = {3:'192.168.1.3', 2:'192.168.1.2'}
+#second node side
+MINE = "2"
+ROUTING_TABLE = {'3':1, '1':3}
+ROUTE_PATH = '192.168.1.3'
+IP_TABLE = {3:'192.168.1.3', 1:'192.168.1.1'}
+
 
 def connectToPi(ip, username='pi', pw='1357') :
     #print('connecting to {}@{}...'.format(username,ip))
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(AutoAddPolicy())
     ssh.connect(ip,username=username,password=pw)
+    #print('connection status = ',ssh.get_transport().is_active())
     return ssh
 
 def sendCommand(ssh, command, pw='1357') :
+    #print('sending a command . . . ', command)
     stdin, stdout, stderr = ssh.exec_command(command)
     if "sudo" in command :
         stdin.write(pw+'\n')
@@ -61,12 +64,9 @@ def sendCommand(ssh, command, pw='1357') :
 # routing detection to destNode
 # write [MINE] + from + [srcNode] in detect.txt
 def routeDetection(myssh, srcNode) :
-    global TARGET_OTHER
     replaceStr = MINE + "from" +srcNode
-    input_file = INPUT_FILE[TARGET_OTHER].split("/home/pi/")
-    cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" " + input_file[1]+""
-    #print("JUST WROTE" + replaceStr + "IT'S TARGET WAS " + str(TARGET_OTHER))
-    TARGET_OTHER  =  (TARGET_OTHER + 1)%NUM_OF_FILE
+   # cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" detect.txt"
+    cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" "+ INPUT_FILE[TARGET_OTHER] + "/"
     sendCommand(myssh, command=cmd)
     
 # check detection recursively
@@ -84,49 +84,55 @@ def adHocNetwork(dest, src) :
 
 def checkDetection() : # for part 3
     global TARGET_MINE
+    global TARGET_OTHER
     while True:
         f = open(INPUT_FILE[TARGET_MINE],'r')
         line = f.readline()
         condition_detect.acquire()
-        if len(line) != 6 : 
+        if line != 6 :
             f.close()
         else :
-            print("This is line : ",line)
+            print("This is line: ",line)
             nodes = line.split("from")
             f.close()
-            #destPi = ROUTING_TABLE[nodes[0]]
-            adHocNetwork(ROUTE_PATH, nodes[1])
-            print("in check detect fuck nodes[0]" , nodes[0])
-            print("in check detect fuck nodes[1]", nodes[1])
-            #print("in check detect fuck destPi", destPi)
-            f = open(INPUT_FILE[TARGET_MINE],'w+') 
+            destPi = ROUTING_TABLE[nodes[0]]
+            adHocNetwork(IP_TABLE[destPi], nodes[1])
+            f = open(INPUT_FILE,'w+')
             f.write(NO_DETECTION)
             f.close()
-            TARGET_MINE = (TARGET_MINE +1)%NUM_OF_FILE 
+        
         condition_detect.notify()
         condition_detect.release()
+    #checkDetection()
 
-# if danger > 1
-# else 0
-#return randNum
 def isDanger() : # for part 2
     randNum = random.randrange(0,2)
+    # if danger > 1
+    # else 0
+    #return randNum
     return 1
 
+
 def checkWav(sound) : # for part 2
+    # check sound
     global isWork
     isWork = isWork+1
+    #print(isWork)
     check = isDanger()
+    #print(check)
     if check == 1 :
         # should route danger to neighbor node
         adHocNetwork(ROUTE_PATH, MINE)
 
 def soundRecord() :
+    #print("start to record the audio.")
     frames = []
     for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
         data = stream.read(CHUNK)
         frames.append(data)
-    return b''.join(frames)
+    
+    #print("Recording finished.")
+    #printn b''.join(frames)
 
 class ProducerThread(Thread):
     def run(self):
@@ -138,14 +144,14 @@ class ProducerThread(Thread):
         while True:
             condition_queue.acquire()
             if count == MAX_NUM:
-                print('Queue full, producer is waiting')
+                #print('Queue full, producer is waiting')
                 condition_queue.wait()
-                print("Space in queue, Consumer notified the producer")
-            #input = soundRecord()
-            input = 1
+                #print("Space in queue, Consumer notified the producer")
+            input = soundRecord()
             queue[in_queue]= input
             in_queue = (in_queue+1)%MAX_NUM
             count +=1
+            #print("Produced",input)
             
             condition_queue.notify()
             condition_queue.release()
@@ -160,11 +166,12 @@ class ConsumerThread(Thread):
         while True:
             condition_queue.acquire()
             if count == 0:
-                print ("Nothing in queue, consumer is waiting")
+                #print ("Nothing in queue, consumer is waiting")
                 condition_queue.wait()
-                print ("Producer added something to queue and notifed the consumer")
+                #print ("Producer added something to queue and notifed the consumer")
             output = queue[out_queue]
             out_queue = (out_queue+1) % MAX_NUM
+            #print ("Consumed",output)
             condition_queue.notify()
             condition_queue.release()
             checkWav(output)
@@ -178,4 +185,3 @@ for i in range(0,10):
     consumerList[i].start()
 
 checkDetection() # for part 3
-
