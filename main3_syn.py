@@ -46,11 +46,11 @@ IP_TABLE = {1:'192.168.1.1', 2:'192.168.1.2'}
 
 
 def connectToPi(ip, username='pi', pw='1357') :
-    #print('connecting to {}@{}...'.format(username,ip))
+    print('connecting to {}@{}...'.format(username,ip))
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(AutoAddPolicy())
     ssh.connect(ip,username=username,password=pw)
-    #print('connection status = ',ssh.get_transport().is_active())
+    print('connection status = ',ssh.get_transport().is_active())
     return ssh
 
 def sendCommand(ssh, command, pw='1357') :
@@ -68,8 +68,9 @@ def routeDetection(myssh, srcNode) :
     global TARGET_OTHER
     global TARGET_MINE
     replaceStr = MINE + "from" +srcNode
-    input_file = INPUT_FILE[TARGET_OTHER].split("/home/pi")
+    input_file = INPUT_FILE[TARGET_OTHER].split("/home/pi/")
     cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" " + input_file[1] +""
+    print(cmd)
     #print("JUST WROTE" + replaceStr + "It's target was " + str(TARGET_OTHER))
     TARGET_OTHER = (TARGET_OTHER +1) % NUM_OF_FILE
     sendCommand(myssh, command=cmd)
@@ -99,6 +100,7 @@ def checkDetection() : # for part 3
         if line[1:5]!= 'from' :
             f.close()
         else :
+            line = line[0:6]
             print("This is line : ",line)
             nodes = line.split("from")
             f.close()
@@ -139,7 +141,7 @@ def soundRecord() :
     frames = []
     #print(len(frames))
     for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-        data = stream.read(CHUNK)
+        data = stream.read(CHUNK,exception_on_overflow = False)
         frames.append(data)
     
     # print("Recording finished.")
@@ -158,8 +160,8 @@ class ProducerThread(Thread):
                 print('Queue full, producer is waiting')
                 condition_queue.wait()
                 print("Space in queue, Consumer notified the producer")
-            #input = soundRecord()
-            input=1
+            input = soundRecord()
+            #input=1
             queue[in_queue]= input
             in_queue = (in_queue+1)%MAX_NUM
             count +=1
