@@ -12,7 +12,6 @@ NUM_OF_FILE = 5
 
 INPUT_FILE = ["/home/pi/detect1.txt","/home/pi/detect2.txt","/home/pi/detect3.txt","/home/pi/detect4.txt","/home/pi/detect5.txt"]
 
-
 # var for part 1 starts
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -73,7 +72,7 @@ def routeDetection(myssh, srcNode) :
     cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" " + input_file[1] +""
     #print("JUST WROTE" + replaceStr + "It's target was " + str(TARGET_OTHER))
     TARGET_OTHER = (TARGET_OTHER +1) % NUM_OF_FILE
-    sendCommand(myssh, command=newcmd)
+    sendCommand(myssh, command=cmd)
     
 # check detection recursively
 # if line is "node" -> no detection
@@ -97,7 +96,7 @@ def checkDetection() : # for part 3
         f = open(INPUT_FILE[TARGET_MINE],'r')
         line = f.readline()
         condition_detect.acquire()
-        if len(line) != 6 :
+        if line[1:5]!= 'from' :
             f.close()
         else :
             print("This is line : ",line)
