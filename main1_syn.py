@@ -65,7 +65,7 @@ def routeDetection(myssh, srcNode) :
     replaceStr = MINE + "from" +srcNode
     input_file = INPUT_FILE[TARGET_OTHER].split("/home/pi/")
     cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" " + input_file[1]+""
-    #print("JUST WROTE" + replaceStr + "IT'S TARGET WAS " + str(TARGET_OTHER))
+    print("JUST WROTE" + replaceStr + "IT'S TARGET WAS " + str(TARGET_OTHER))
     TARGET_OTHER  =  (TARGET_OTHER + 1)%NUM_OF_FILE
     sendCommand(myssh, command=cmd)
     
@@ -88,7 +88,7 @@ def checkDetection() : # for part 3
         f = open(INPUT_FILE[TARGET_MINE],'r')
         line = f.readline()
         condition_detect.acquire()
-        if len(line) != 6 : 
+        if line[1:5] != 'from' : 
             f.close()
         else :
             print("This is line : ",line)
@@ -119,6 +119,7 @@ def checkWav(sound) : # for part 2
     check = isDanger()
     if check == 1 :
         # should route danger to neighbor node
+        print("it is danger")
         adHocNetwork(ROUTE_PATH, MINE)
 
 def soundRecord() :
