@@ -3,12 +3,14 @@ import random
 import pyaudio
 import wave
 from threading import Thread, Condition
+import RPi.GPIO as GPIO
 import time
 
 NO_DETECTION = "node"
 TARGET_MINE= 0
 TARGET_OTHER= 0
 NUM_OF_FILE = 5
+GPIO.setmode(GPIO.BCM)
 
 INPUT_FILE = ["/home/pi/detect1.txt","/home/pi/detect2.txt","/home/pi/detect3.txt","/home/pi/detect4.txt","/home/pi/detect5.txt"]
 
@@ -41,9 +43,25 @@ isWork=0
 #third node side
 MINE = "3"
 ROUTING_TABLE = {'1':2, '2':1}
-ROUTE_PATH = '192.168.1.1'
+#ROUTE_PATH = '192.168.1.1'
 IP_TABLE = {1:'192.168.1.1', 2:'192.168.1.2'}
 
+def mangaerLED() :
+    print ("Setup LED pins as outputs")
+    GPIO.setup(23,GPIO.OUT)
+    GPIO.setup(24,GPIO.OUT)
+    
+    try:
+        while True:
+            GPIO.output(23,False)
+            GPIO.output(24,False)
+            time.sleep(1)
+            GPIO.output(23,True)
+            GPIO.output(24,True)
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        GPIO.cleanup()
 
 def connectToPi(ip, username='pi', pw='1357') :
     print('connecting to {}@{}...'.format(username,ip))
@@ -99,20 +117,20 @@ def checkDetection() : # for part 3
         condition_detect.acquire()
         if line[1:5]!= 'from' :
             f.close()
-        else :
+        else : 
             line = line[0:6]
             print("This is line : ",line)
             nodes = line.split("from")
             f.close()
-            destPi = ROUTING_TABLE[nodes[0]]
+            #destPi = ROUTING_TABLE[nodes[0]]
             #adHocNetwork(IP_TABLE[destPi], nodes[1])
-            adHocNetwork(ROUTE_PATH,nodes[1])
-            print("in check detect fuck nodes[0]" , nodes[0])
-            print("in check detect fuck nodes[1]", nodes[1])
-            print("in check detect fuck destPi", destPi)
+            #adHocNetwork(ROUTE_PATH,nodes[1]) #Manager doesn't have to ssh login
+            '''
             f = open(INPUT_FILE[TARGET_MINE],'w+')
             f.write(NO_DETECTION)
             f.close()
+            '''
+            mangaerLED()
             TARGET_MINE = (TARGET_MINE +1) % NUM_OF_FILE
         condition_detect.notify()
         condition_detect.release()
@@ -123,7 +141,7 @@ def isDanger() : # for part 2
     # if danger > 1
     # else 0
     #return randNum
-    return 1
+    return 0
 
 def checkWav(sound) : # for part 2
     # check sound
@@ -133,8 +151,9 @@ def checkWav(sound) : # for part 2
     check = isDanger()
     #print(check)
     if check == 1 :
+        mangaerLED()
         # should route danger to neighbor node
-        adHocNetwork(ROUTE_PATH, MINE)
+        #adHocNetwork(ROUTE_PATH, MINE)
 
 def soundRecord() :
     #print("start to record the audio.")
