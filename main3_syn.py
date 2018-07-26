@@ -6,6 +6,12 @@ from threading import Thread, Condition
 import RPi.GPIO as GPIO
 import time
 
+IS_MANAGER = 0 # when raspberry pi starts, it needs to be initialized !!
+num_of_nodes = 5 # when raspberry pi starts, it needs to be initialized !!
+start_of_nodeId
+ip_list = [None]*(num_of_nodes)
+node_list = [None]*(num_of_nodes)
+
 NO_DETECTION = "node"
 TARGET_MINE= 0
 TARGET_OTHER= 0
@@ -46,7 +52,13 @@ ROUTING_TABLE = {'1':2, '2':1}
 #ROUTE_PATH = '192.168.1.1'
 IP_TABLE = {1:'192.168.1.1', 2:'192.168.1.2'}
 
-def mangaerLED() :
+def isManager(managerList) :
+    managers = managerList.split(" ")
+    for i in range(0, length(managers)) :
+        if(int(managers[i]) == MINE) return '1'
+    return '0'
+
+def managerLED() :
     print ("Setup LED pins as outputs")
     GPIO.setup(23,GPIO.OUT)
     GPIO.setup(24,GPIO.OUT)
@@ -108,7 +120,7 @@ def adHocNetwork(dest, src) :
     condition_adhoc.release()
     time.sleep(random.random())
 
-def checkDetection() : # for part 3
+def checkDetection_manager() : # for part 3
     global TARGET_OTHER
     global TARGET_MINE
     while True:
@@ -130,7 +142,7 @@ def checkDetection() : # for part 3
             f.write(NO_DETECTION)
             f.close()
             '''
-            mangaerLED()
+            managerLED()
             TARGET_MINE = (TARGET_MINE +1) % NUM_OF_FILE
         condition_detect.notify()
         condition_detect.release()
@@ -143,7 +155,7 @@ def isDanger() : # for part 2
     #return randNum
     return 0
 
-def checkWav(sound) : # for part 2
+def checkWav_manager(sound) : # for part 2
     # check sound
     global isWork
     isWork = isWork+1
@@ -166,6 +178,27 @@ def soundRecord() :
     # print("Recording finished.")
     return b''.join(frames)
 
+class IsChangeThread(Thread):
+    def run(self):
+        global num_of_nodes
+        global start_of_nodeId
+        global ip_list
+        global node_list
+        global IS_MANAGER
+        while True:
+            f = open('info.txt','r')
+            line = f.readline()
+            if int(line) == num_of_nodes :
+                f.close()
+            else :
+                start_of_nodeId = f.readline()
+                for i in range(0,num_of_nodes):
+                    ip_list[i] = f.readline()
+                    node_list[i] = int(ip_list[i][10:])
+                managerList = f.readline()
+                f.close()
+                IS_MANAGER = isManager(managerList)
+                
 class ProducerThread(Thread):
     def run(self):
         nums=range(5)
@@ -215,6 +248,8 @@ ProducerThread().start()
 consumerList = [ConsumerThread() for i in range(0,10)]
 for i in range(0,10):
     consumerList[i].start()
+    
+IsChangeThread().start()
 
 checkDetection() # for part 3
 
