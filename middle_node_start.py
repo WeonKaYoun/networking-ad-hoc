@@ -4,6 +4,7 @@ import os, sys
 MINE = 2
 ipAddress = []
 INFO_PATH = '/home/pi/info.txt'
+IS_MANAGER = 0
 
 def connectToPi(ip, username='pi', pw='1357') :
     ssh = SSHClient()
@@ -28,6 +29,12 @@ def adHocNetwork(dest, text) :
     myssh = connectToPi(ip=dest)
     routeInitial(myssh, text)
 
+def isManager(managerList) :
+    managers = managerList.split(" ")
+    for i in range(0, length(managers)) :
+        if(int(managers[i]) == MINE) return '1'
+    return '0'
+
 ## code starts ##
 f = open(INFO_PATH,'r')
 numOfNode = f.readline()
@@ -41,13 +48,15 @@ for i in range(0, int(numOfNode)) :
     if int(tempIp[10:]) == MINE :
         myIpIndex = i
 
-managerNodes = f.readline()
-text += "\n" + managerNodes
+managerList = f.readline()
+text += "\n" + managerList
 f.close()
+
+IS_MANAGER = isManager(managerList)
 
 if myIpIndex != (numOfNode-1)
     adHocNetwork(ipAddress[myIpIndex+1], text) # step 3 : route inputs to other nodes
 
-cmd = "python main.py" # step 4 : start main.py
+cmd = "python main.py " + IS_MANAGER # step 4 : start main.py
 os.system(cmd)
 print("done")
