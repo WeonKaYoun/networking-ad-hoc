@@ -3,7 +3,7 @@ import os, sys
 
 MINE = 2
 ipAddress = []
-INFO_PATH = '/home/pi/info.txt'
+INFO_PATH = '/home/pi/info1.txt'
 IS_MANAGER = 0
 
 def connectToPi(ip, username='pi', pw='1357') :
