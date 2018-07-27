@@ -21,7 +21,8 @@ def sendCommand(ssh, command, pw='1357') :
 
 def routeInitial(myssh, text) :
     info_path = INFO_PATH.split("/home/pi/")
-    cmd = "vi -c \"%s/initial/"+text+"/g\" -c \"wq\" " + info_path[1]+"" # step 3-1 : write txt file in neibor node
+    #cmd = "vi -c \"%s/initial/"+text+"/g\" -c \"wq\" " + info_path[1]+"" # step 3-1 : write txt file in neibor node
+    cmd = "for i in $(seq 1); do echo " + text + ">> " + info_path[1] + "; done"
     sendCommand(myssh, command=cmd)
     print("start other")
     cmd = "python middle_node_start.py"
@@ -48,7 +49,8 @@ myIpIndex = 0
 numOfNode = input()
 startNodeId = input()
 
-text = numOfNode + "\n" + startNodeId
+#text = numOfNode + "\n" + startNodeId
+text = "\"" + numOfNode + "\n" + startNodeId
 
 for i in range(0, int(numOfNode)) :
     tempIp = input()
@@ -57,13 +59,14 @@ for i in range(0, int(numOfNode)) :
     
 # get manager node's id until user click enter
 managerList = input()
+text +="\n" + managerList +"\""
 print("manager list : " + managerList)
 IS_MANAGER = isManager(managerList)
 print("IS_MANAGER : " + IS_MANAGER)
 
-f = open(INFO_PATH,'w+')
-f.write(text) # step 2 : write inputs in file in its node
-f.close()
+#f = open(INFO_PATH,'w+')
+#f.write(text) # step 2 : write inputs in file in its node
+#f.close()
 
 adHocNetwork(ipAddress[1], text) # step 3 : route inputs to other nodes
 

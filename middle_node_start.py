@@ -20,7 +20,8 @@ def sendCommand(ssh, command, pw='1357') :
 
 def routeInitial(myssh, text) :
     info_path = INFO_PATH.split("/home/pi/")
-    cmd = "vi -c \"%s/initail/"+text+"/g\" -c \"wq\" " + info_path[1]+"" # step 3-1 : write txt file in neibor node
+    #cmd = "vi -c \"%s/initail/"+text+"/g\" -c \"wq\" " + info_path[1]+"" # step 3-1 : write txt file in neibor node
+    cmd = "for i in $(seq 1); do echo " + text + ">> " + info_path[1] + "; done"
     sendCommand(myssh, command=cmd)
     cmd = "python middle_node_start.py"
     sendCommand(myssh, command=cmd) # step 3-2 : run middle_node_start.py to route input to neighbor's neighbor
@@ -39,8 +40,8 @@ def isManager(managerList) :
 f = open(INFO_PATH,'r')
 numOfNode = f.readline()
 startNodeId = f.readline()
-text = numOfNode + "\n" + startNodeId
-
+#text = numOfNode + "\n" + startNodeId
+text = "\"" + numOfNode + "\n" + startNodeId
 for i in range(0, int(numOfNode)) :
     tempIp = f.readline()
     ipAddress.append(tempIp)
@@ -49,7 +50,8 @@ for i in range(0, int(numOfNode)) :
         myIpIndex = i
 
 managerList = f.readline()
-text += "\n" + managerList
+#text += "\n" + managerList
+text +="\n" + managerList +"\""
 f.close()
 
 IS_MANAGER = isManager(managerList)
