@@ -58,8 +58,10 @@ start_of_nodeId = 0 # add ittttt
 txt = ""
 next_node = 0
 pre_node = 0
-ip_list = [None] * (num_of_nodes)
-node_list = [None] * (num_of_nodes)
+#ip_list = [None] * (num_of_nodes)
+#node_list = [None] * (num_of_nodes)
+ip_list = []
+node_list = []
 
 ALERT_TABLE = {1: 0, 2: 0, 3: 0}  # NODE : IS_DETECTED
 #numOfNode = 3
@@ -249,6 +251,11 @@ class IsChangeThread(Thread):
                 start_of_nodeId = int(f.readline())
                 for i in range(0, num_of_nodes):
                     ip_list[i] = f.readline()
+                    tempstr="192.168.1."+str(MINE)+"\n"
+                    tempstr2=ip_list[i]
+                    if(tempstr == tempstr2) :
+                        my_idx=i
+                    node_list[i] = int(ip_list[i][10:])ip_list[i] = f.readline()
                     node_list[i] = int(ip_list[i][10:])
                 # check manager
                 managerList = f.readline()
@@ -274,7 +281,8 @@ class IsChangeThread(Thread):
                 print("right", couple_right)
                 print("left idx", left_idx)
                 print("right idx", right_idx)
-
+                print("my idx", my_idx)
+                
                 isSSHworks = -1
                 # sys.exit(1)
 
@@ -294,8 +302,19 @@ class IsChangeThread(Thread):
                     except paramiko.ssh_exception.NoValidConnectionsError:
                         isSSHworks = 0
                         print("ssh fail")
-
-                if (isSSHworks == 0):  # couple is dead
+                        
+                else :
+                    try:
+                        myssh = connectToPi(ip=ip_list[my_idx+1])
+                        isSSHworks=1
+                        print("ssh success : ",ip_list[my_idx+1])
+                    except paramiko.ssh_exception.NoValidConnectionsError:
+                        isSSHworks=0
+                        print("ssh fail")
+                        
+                        
+                # couple is dead
+                if (isSSHworks == 0):  
                     if MINE == couple_left:  # when right side is dead (here, node 4)
                         changeInfo(ip_list[right_idx])  # write new file
                         next_node = ip_list[right_idx + 1]
@@ -309,6 +328,14 @@ class IsChangeThread(Thread):
                         pre_node = ip_list[left_idx - 1]
                         sendFile(next_node, txt)
                         sendFile(pre_node, txt)
+                        
+                        
+                    else :
+                        changeInfo(ip_list[my_idx+1]) #write new file
+                        next_node = ip_list[my_idx+2]
+                        pre_node = ip_list[my_idx-1]
+                        sendFile(next_node, txt) #send file to next node
+                        sendFile(pre_node, txt) #send file to previous node
 
 
 def checkFile():
