@@ -62,6 +62,11 @@ pre_node = 0
 #node_list = [None] * (num_of_nodes)
 ip_list = []
 node_list = []
+couple_left = 0
+couple_right = 0
+left_idx = 0
+right_idx = 0
+my_idx = 0
 
 ALERT_TABLE = {1: 0, 2: 0, 3: 0}  # NODE : IS_DETECTED
 #numOfNode = 3
@@ -231,6 +236,34 @@ def isManager(managerList):
     return '0'
 
 
+def isYouCouple() :
+    mid = (node_list[0] + node_list[num_of_nodes - 1]) / 2
+    # set couple_left , couple_right
+    couple_left = 0
+    couple_right = 999999
+    
+    if num_of_nodes %2 == 0 :
+        for i in range(0, num_of_nodes):
+            if (node_list[i] < mid and couple_left < node_list[i]):
+                couple_left = node_list[i]
+                left_idx = i
+            elif (node_list[i] > mid and couple_right > node_list[i]):
+                couple_right = node_list[i]
+                right_idx = i
+    else :
+        mid_idx = int((num_of_nodes-1)/2)
+        couple_left = node_list[mid_idx]
+        couple_right = node_list[mid_idx+1]
+        left_idx = mid_idx
+        right_idx = mid_idx +1
+
+    print("left", couple_left)
+    print("right", couple_right)
+    print("left idx", left_idx)
+    print("right idx", right_idx)
+    print("my idx", my_idx)
+    
+
 class IsChangeThread(Thread):
     def run(self):
         global num_of_nodes
@@ -240,6 +273,11 @@ class IsChangeThread(Thread):
         global IS_MANAGER
         global next_node
         global pre_node
+        global couple_left
+        global couple_right
+        global left_idx
+        global right_idx
+        global my_idx
 
         while True:
             f = open('info.txt', 'r')
@@ -254,35 +292,18 @@ class IsChangeThread(Thread):
                     tempstr="192.168.1."+str(MINE)+"\n"
                     tempstr2=ip_list[i]
                     if(tempstr == tempstr2) :
-                        my_idx=i
-                    node_list[i] = int(ip_list[i][10:])ip_list[i] = f.readline()
+                        my_idx = i
                     node_list[i] = int(ip_list[i][10:])
+                    ip_list[i] = f.readline()
+                    
                 # check manager
                 managerList = f.readline()
-                # f.close()
-                IS_MANAGER = isManager(managerList)
-
-                mid = (node_list[0] + node_list[num_of_nodes - 1]) / 2
                 f.close()
-
-                # set couple_left , couple_right
-                couple_left = 0
-                couple_right = 999999
-                # 홀수일때는 ?
-                for i in range(0, num_of_nodes):
-                    if (node_list[i] < mid and couple_left < node_list[i]):
-                        couple_left = node_list[i]
-                        left_idx = i
-                    elif (node_list[i] > mid and couple_right > node_list[i]):
-                        couple_right = node_list[i]
-                        right_idx = i
-
-                print("left", couple_left)
-                print("right", couple_right)
-                print("left idx", left_idx)
-                print("right idx", right_idx)
-                print("my idx", my_idx)
+                IS_MANAGER = isManager(managerList)
                 
+                #Couple setting
+                isYouCouple()
+
                 isSSHworks = -1
                 # sys.exit(1)
 
@@ -329,14 +350,12 @@ class IsChangeThread(Thread):
                         sendFile(next_node, txt)
                         sendFile(pre_node, txt)
                         
-                        
                     else :
                         changeInfo(ip_list[my_idx+1]) #write new file
                         next_node = ip_list[my_idx+2]
                         pre_node = ip_list[my_idx-1]
                         sendFile(next_node, txt) #send file to next node
                         sendFile(pre_node, txt) #send file to previous node
-
 
 def checkFile():
     while True:
@@ -469,4 +488,5 @@ checkDetection()  # for part 3
 # start()
 # sendFile(next_node,txt)
 # sendFile(pre_node,txt)
+
 
