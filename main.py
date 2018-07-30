@@ -144,6 +144,12 @@ def isDanger():  # for part 2
     randNum = random.randrange(0, 2)
     return 0
 
+def alert(detectedNode):
+    condition_alert.acquire()
+    if ALERT_TABLE[detectedNode] == 0:
+        ALERT_TABLE[detectedNode] = 1
+    condition_alert.notify()
+    condition_alert.release()
 
 def checkWav(sound):  # for part 2
     global isWork
@@ -152,7 +158,10 @@ def checkWav(sound):  # for part 2
     if check == 1:
         # should route danger to neighbor node
         print("it is danger")
-        adHocNetwork(ROUTE_PATH, MINE)
+        if IS_MANAGER == 1 :
+            alert(int(MINE))
+        else :
+            adHocNetwork(ROUTE_PATH, MINE)
 
 
 def soundRecord():
@@ -209,7 +218,7 @@ class ConsumerThread(Thread):
 
 def isManager(managerList):
     managers = managerList.split(" ")
-    for i in range(0, length(managers)):
+    for i in range(0, len(managers)):
         if (int(managers[i]) == MINE):
             return '1'
     return '0'
@@ -302,14 +311,6 @@ class IsChangeThread(Thread):
                         pre_node = ip_list[left_idx - 1]
                         sendFile(next_node, txt)
                         sendFile(pre_node, txt)
-
-
-def alert(detectedNode):
-    condition_alert.acquire()
-    if ALERT_TABLE[detectedNode] == 0:
-        ALERT_TABLE[detectedNode] = 1
-    condition_alert.notify()
-    condition_alert.release()
 
 
 def checkFile():
