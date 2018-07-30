@@ -11,6 +11,8 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
 GPIO.setup(24, GPIO.OUT)
 
+INFO_FILE = 'info.txt'
+
 NO_DETECTION = "node"
 INPUT_FILE = ["/home/pi/detect1.txt", "/home/pi/detect2.txt", "/home/pi/detect3.txt", "/home/pi/detect4.txt",
               "/home/pi/detect5.txt"]
@@ -51,10 +53,13 @@ ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = '192.168.1.2'
 #IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
 
-num_of_nodes = 0
+num_of_nodes = 100
+start_of_nodeId = 0 # add ittttt
 txt = ""
 next_node = 0
 pre_node = 0
+ip_list = [None] * (num_of_nodes)
+node_list = [None] * (num_of_nodes)
 
 ALERT_TABLE = {1: 0, 2: 0, 3: 0}  # NODE : IS_DETECTED
 #numOfNode = 3
@@ -250,20 +255,13 @@ class IsChangeThread(Thread):
                 # f.close()
                 IS_MANAGER = isManager(managerList)
 
-                # save IP addresses
-                ip_list = [None] * (num_of_nodes)
-                node_list = [None] * (num_of_nodes)
-                for i in range(0, num_of_nodes):
-                    ip_list[i] = f.readline()
-                    node_list[i] = int(ip_list[i][10:])
-
                 mid = (node_list[0] + node_list[num_of_nodes - 1]) / 2
                 f.close()
 
                 # set couple_left , couple_right
                 couple_left = 0
                 couple_right = 999999
-
+                # 홀수일때는 ?
                 for i in range(0, num_of_nodes):
                     if (node_list[i] < mid and couple_left < node_list[i]):
                         couple_left = node_list[i]
@@ -398,6 +396,27 @@ def checkDetection():  # for part 3
             TARGET_MINE = (TARGET_MINE + 1) % NUM_OF_FILE
         condition_detect.notify()
         condition_detect.release()
+
+def initializeVars() :
+    global num_of_nodes
+    global start_of_nodeId
+    global ip_list
+    global node_list
+    global IS_MANAGER
+    global next_node
+    global pre_node
+
+    f = open(INFO_FILE, 'r')
+    line = f.readline()
+    num_of_nodes = int(line)
+    start_of_nodeId = int(line)
+    for i in range(0, num_of_nodes):
+        ip_list[i] = f.readline()
+        node_list[i] = int(ip_list[i][10:])
+    managerList = f.readline()
+    IS_MANAGER = isManager(managerList)
+    # seojeong should complete this function and call this func. when this file starts
+
 
 IS_MANAGER = sys.argv[1]
 
