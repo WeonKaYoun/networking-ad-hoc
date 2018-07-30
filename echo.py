@@ -13,9 +13,13 @@ def sendCommand(ssh, command, pw='1357') :
     if "sudo" in command :
         stdin.write(pw+'\n')
     stdin.flush()
-    
-replaceStr = "\"this is"+"\n"+"daeun\""
-input_file = "info.txt"
+
+thisisStr = "this is"
+anotherStr = "seojeong"
+otherStr = "I don't know"
+replaceStr = "\""+ thisisStr+"\n"+otherStr+anotherStr+"\""
+
+input_file = "newfile.txt"
 #cmd = "vi -c \"%s/node/"+replaceStr+"/g\" -c \"wq\" " + input_file[1] +""
 cmd = "for i in $(seq 1); do echo " + replaceStr + ">> " + input_file + "; done"
 print(cmd)
