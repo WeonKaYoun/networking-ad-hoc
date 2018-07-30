@@ -376,11 +376,17 @@ def checkDetection():  # for part 3
     while True:
         f = open(INPUT_FILE[TARGET_MINE], 'r')
         line = f.readline()
+        idx = line.find('from')
         condition_detect.acquire()
-        if line[1:5] != 'from':
+        if idx == -1:
             f.close()
         else:
-            line = line[0:6] # 만약에 노드의 수가 정말 많아져서 두자리라면?????
+            for i in range(idx+4,len(line)):
+                if int(line[i])>-1 and int(line[i])<10 :
+                    last_idx = i
+                    print("last_idx : ", last_idx)
+                    
+            line = line[0:last_idx+1] 
             print("This is line : ", line)
             nodes = line.split("from")
             f.close()
@@ -417,3 +423,4 @@ checkDetection()  # for part 3
 # start()
 # sendFile(next_node,txt)
 # sendFile(pre_node,txt)
+
