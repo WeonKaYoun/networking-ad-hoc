@@ -8,7 +8,7 @@ import time
 import paramiko
 import sys
 
-MINE = 3
+MINE = 2
 num_of_nodes = 0
 txt = ""
 next_node = 0
@@ -29,14 +29,14 @@ def sendCommand(ssh, command, pw='1357') :
     stdin.flush()
     
 def routeFile(myssh, txt) :
-    info_path = "tempfile.txt"
+    info_path = "info.txt"
     cmd1 = "rm "+ info_path
     sendCommand(myssh, command=cmd1)
     cmd = "for i in $(seq 1) ; do echo " + "\""+txt + "\""+">> " + info_path + "; done"
     sendCommand(myssh, command=cmd)
    
 
-def adhocNetwork(dest, txt) :
+def sendFile(dest, txt) :
     myssh = connectToPi(ip=dest)
     routeFile(myssh, txt)
     
@@ -52,7 +52,7 @@ def changeInfo(ip) :
     lines=f.readlines()
     f.close()
             
-    f = open('info2.txt','w')
+    f = open('info.txt','w')
     f.write(str(num_of_nodes)+'\n')
     txt = str(num_of_nodes) + "\n"
     for i in lines :
@@ -79,6 +79,10 @@ def start() :
     
     for i in range(0,num_of_nodes):
         ip_list[i] = f.readline()
+        tempstr="192.168.1."+str(MINE)+"\n"
+        tempstr2=ip_list[i]
+        if(tempstr == tempstr2) :
+            my_idx=i
         node_list[i] = int(ip_list[i][10:])
 
     mid = (node_list[0]+node_list[num_of_nodes-1])/2
@@ -100,7 +104,8 @@ def start() :
     print("right", couple_right)
     print("left idx", left_idx)
     print("right idx", right_idx)
-
+    print("my idx", my_idx)
+    
     isSSHworks = -1
     #sys.exit(1)
 
@@ -120,20 +125,39 @@ def start() :
         except paramiko.ssh_exception.NoValidConnectionsError:
             isSSHworks=0
             print("ssh fail")
+            
+    else :
+        try:
+            myssh = connectToPi(ip=ip_list[my_idx+1])
+            isSSHworks=1
+            print("ssh success : ",ip_list[my_idx+1])
+        except paramiko.ssh_exception.NoValidConnectionsError:
+            isSSHworks=0
+            print("ssh fail")
         
-    if(isSSHworks == 0) : #couple is dead
+    #couple is dead
+    if(isSSHworks == 0) : 
         if MINE == couple_left : #when right side is dead (here, node 4)
             changeInfo(ip_list[right_idx]) #write new file
             next_node = ip_list[right_idx+1]
             pre_node = ip_list[left_idx-1]
-
+            sendFile(next_node, txt) #send file to next node
+            sendFile(pre_node, txt) #send file to previous node
+            
         elif MINE == couple_right : 
             changeInfo(ip_list[right_idx]) #write new file
             next_node = ip_list[right_idx+1]
             pre_node = ip_list[left_idx-1]
+            sendFile(next_node, txt) #send file to next node
+            sendFile(pre_node, txt) #send file to previous node
         
+        else :
+            changeInfo(ip_list[my_idx+1]) #write new file
+            next_node = ip_list[my_idx+2]
+            pre_node = ip_list[my_idx-1]
+            sendFile(next_node, txt) #send file to next node
+            sendFile(pre_node, txt) #send file to previous node
+
 start()
-adhocNetwork(next_node, txt) #send file to next node
-adhocNetwork(pre_node, txt) #send file to previous node
 #temp="192.168.1.2"
-#adhocNetwork(temp,txt)
+#sendFile(temp,txt)
