@@ -64,9 +64,8 @@ print("manager list : " + managerList)
 IS_MANAGER = isManager(managerList)
 print("IS_MANAGER : " + IS_MANAGER)
 
-#f = open(INFO_PATH,'w+')
-#f.write(text) # step 2 : write inputs in file in its node
-#f.close()
+cmd = "for i in $(seq 1); do echo " + text + ">> " + INFO_PATH + "; done"
+os.system(cmd)
 
 adHocNetwork(ipAddress[1], text) # step 3 : route inputs to other nodes
 
