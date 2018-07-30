@@ -57,7 +57,7 @@ next_node = 0
 pre_node = 0
 
 ALERT_TABLE = {1: 0, 2: 0, 3: 0}  # NODE : IS_DETECTED
-numOfNode = 3
+#numOfNode = 3
 condition_alert = Condition()
 
 def connectToPi(ip, username='pi', pw='1357'):
@@ -116,7 +116,7 @@ def sendFile(dest, txt):
     routeFile(myssh, txt)
 
 
-# write new file
+# write new filech
 def changeInfo(ip):
     global num_of_nodes
     global txt
@@ -351,12 +351,12 @@ class LEDThread(Thread):
             howManyDetected = 0
             isMiddle = 0
             condition_alert.acquire()
-            for i in range(1, numOfNode + 1):
+            for i in range(1, num_of_nodes + 1):
                 if ALERT_TABLE[i] == 1:
                     print(str(i) + "node detected")
                     howManyDetected = howManyDetected + 1
                     ALERT_TABLE[i] = 0
-                    if i == numOfNode:
+                    if i == num_of_nodes:
                         isMiddle = 1
             condition_alert.notify()
             condition_alert.release()
