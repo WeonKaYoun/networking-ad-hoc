@@ -49,8 +49,8 @@ isWork = 0
 
 # first node side
 MINE = "1"
-ROUTING_TABLE = {'3': 2, '2': 3}
-ROUTE_PATH = '192.168.1.2'
+#ROUTING_TABLE = {'3': 2, '2': 3}
+ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
 
 num_of_nodes = 6
@@ -60,16 +60,16 @@ next_node = 0
 pre_node = 0
 # ip_list = [None] * (num_of_nodes)
 # node_list = [None] * (num_of_nodes)
-#ip_list = []
+# ip_list = []
 node_list = []
 couple_left = 0
 couple_right = 0
 left_idx = 0
 right_idx = 0
 my_idx = 0
-managers =[]
+managers = []
 
-ALERT_TABLE = {1: 0, 2: 0, 3: 0}  # NODE : IS_DETECTED
+ALERT_TABLE = {1: 0, 2: 0, 3: 0}  # NODE : IS_DETECTED // !!! should change this !!!
 # numOfNode = 3
 condition_alert = Condition()
 
@@ -244,6 +244,9 @@ def isManager(managerList):
 def isYouCouple():
     mid = (node_list[0] + node_list[num_of_nodes - 1]) / 2
     # set couple_left , couple_right
+    global couple_left
+    global couple_right
+
     couple_left = 0
     couple_right = 999999
 
@@ -271,9 +274,10 @@ def isYouCouple():
 
 class IsChangeThread(Thread):
     def run(self):
+        global ROUTE_PATH
         global num_of_nodes
         global start_of_nodeId
-        #global ip_list
+        # global ip_list
         global node_list
         global IS_MANAGER
         global next_node
@@ -292,16 +296,16 @@ class IsChangeThread(Thread):
             start_of_nodeId = int(f.readline())
             ip_list = [None] * (node_num_file)
             node_list = [None] * (node_num_file)
-            
+
             flag = 0
-            if(node_num_file != num_of_nodes) :
+            if (node_num_file != num_of_nodes):
                 flag = 1
                 num_of_nodes = node_num_file
-            
+
             for i in range(0, node_num_file):
                 ip_list[i] = f.readline()
                 temptxt += ip_list[i]
-                #print(ip_list[i])
+                # print(ip_list[i])
                 tempstr = "192.168.1." + str(MINE) + "\n"
                 tempstr2 = ip_list[i]
                 if (tempstr == tempstr2):
@@ -317,6 +321,10 @@ class IsChangeThread(Thread):
 
             # Couple setting
             isYouCouple()
+            if int(MINE) <= couple_left :
+                ROUTE_PATH = ip_list[my_idx - 1]
+            else :
+                ROUTE_PATH = ip_list[my_idx + 1]
 
             isSSHworks = -1
             # sys.exit(1)
@@ -346,15 +354,14 @@ class IsChangeThread(Thread):
                 except paramiko.ssh_exception.NoValidConnectionsError:
                     isSSHworks = 0
                     print("ssh fail")
-                    
-                    
+
             if (isSSHworks == 1):
-                if(flag == 1) :
-                    if(IS_MANAGER == 0)
-                        sendfile(my_idx+1,temptxt)
-                        sendfile(my_idx-1,temptxt)
-                    
-                
+                if (flag == 1):
+                    if (IS_MANAGER == 0)
+                        sendfile(my_idx + 1, temptxt)
+                        sendfile(my_idx - 1, temptxt)
+
+
             # couple is dead
             elif (isSSHworks == 0):
                 if MINE == couple_left:  # when right side is dead (here, node 4)
@@ -476,22 +483,37 @@ def checkDetection():  # for part 3
 def initializeVars():
     global num_of_nodes
     global start_of_nodeId
-    #global ip_list
+    # global ip_list
     global node_list
     global IS_MANAGER
+    global ROUTE_PATH
+    global my_idx
 
     f = open(INFO_FILE, 'r')
     line = f.readline()
     num_of_nodes = int(line)
     start_of_nodeId = int(line)
-   # for i in range(0, num_of_nodes):
-    #    ip_list[i] = f.readline()
-     #   node_list[i] = int(ip_list[i][10:])
+
+    temp_ip = []
+
+    for i in range(0, num_of_nodes):
+        temp_ip.append(f.readline())
+        node_list[i] = int(ip_list[i][10:])
+        if node_list[i] == int(MINE) :
+            my_idx = i
+    isYouCouple()
+    if int(MINE) <= couple_left :
+        ROUTE_PATH = temp_ip[i-1]
+    else :
+        ROUTE_PATH = temp_ip[i+1]
+
     managerList = f.readline()
     IS_MANAGER = isManager(managerList)
 
     # seojeong should complete this function and call this func. when this file starts
 
+
+initializeVars()
 ProducerThread().start()
 
 consumerList = [ConsumerThread() for i in range(0, 10)]
