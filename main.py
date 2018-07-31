@@ -16,7 +16,7 @@ INFO_FILE = 'info.txt'
 NO_DETECTION = "node"
 INPUT_FILE = ["/home/pi/detect1.txt", "/home/pi/detect2.txt", "/home/pi/detect3.txt", "/home/pi/detect4.txt",
               "/home/pi/detect5.txt"]
-NUM_OF_FILE = 5
+NUM_OF_FILE = 6
 TARGET_MINE = 0
 TARGET_OTHER = 0
 IS_MANAGER = 0
@@ -61,12 +61,13 @@ pre_node = 0
 # ip_list = [None] * (num_of_nodes)
 # node_list = [None] * (num_of_nodes)
 #ip_list = []
-#node_list = []
+node_list = []
 couple_left = 0
 couple_right = 0
 left_idx = 0
 right_idx = 0
 my_idx = 0
+managers =[]
 
 ALERT_TABLE = {1: 0, 2: 0, 3: 0}  # NODE : IS_DETECTED
 # numOfNode = 3
@@ -232,6 +233,7 @@ class ConsumerThread(Thread):
 
 
 def isManager(managerList):
+    global managers
     managers = managerList.split(" ")
     for i in range(0, len(managers)):
         if (int(managers[i]) == MINE):
@@ -272,7 +274,7 @@ class IsChangeThread(Thread):
         global num_of_nodes
         global start_of_nodeId
         #global ip_list
-        #global node_list
+        global node_list
         global IS_MANAGER
         global next_node
         global pre_node
@@ -285,84 +287,95 @@ class IsChangeThread(Thread):
         while True:
             f = open('info.txt', 'r')
             line = f.readline()
-            if int(line) == num_of_nodes:
-                f.close()
+            node_num_file = int(line)
+            temptxt = line
+            start_of_nodeId = int(f.readline())
+            ip_list = [None] * (node_num_file)
+            node_list = [None] * (node_num_file)
+            
+            flag = 0
+            if(node_num_file != num_of_nodes) :
+                flag = 1
+                num_of_nodes = node_num_file
+            
+            for i in range(0, node_num_file):
+                ip_list[i] = f.readline()
+                temptxt += ip_list[i]
+                #print(ip_list[i])
+                tempstr = "192.168.1." + str(MINE) + "\n"
+                tempstr2 = ip_list[i]
+                if (tempstr == tempstr2):
+                    my_idx = i
+                node_list[i] = int(ip_list[i][10:])
+
+            # check manager
+            managerList = f.readline()
+            temptxt = temptxt + managerList + "\n"
+            f.close()
+            print(temptxt)
+            IS_MANAGER = isManager(managerList)
+
+            # Couple setting
+            isYouCouple()
+
+            isSSHworks = -1
+            # sys.exit(1)
+
+            if (MINE == couple_left):
+                try:
+                    myssh = connectToPi(ip=ip_list[right_idx])
+                    isSSHworks = 1
+                    print("ssh success : ", ip_list[right_idx])
+                except paramiko.ssh_exception.NoValidConnectionsError:
+                    isSSHworks = 0
+                    print("ssh fail")
+            elif (MINE == couple_right):
+                try:
+                    myssh = connectToPi(ip=ip_list[left_idx])
+                    isSSHworks = 1
+                    print("ssh success : ", ip_list[left_idx])
+                except paramiko.ssh_exception.NoValidConnectionsError:
+                    isSSHworks = 0
+                    print("ssh fail")
+
             else:
-                num_of_nodes = int(line)
-                print(num_of_nodes)
-                start_of_nodeId = int(f.readline())
-                ip_list = [None] * (num_of_nodes)
-                node_list = [None] * (num_of_nodes)
+                try:
+                    myssh = connectToPi(ip=ip_list[my_idx + 1])
+                    isSSHworks = 1
+                    print("ssh success : ", ip_list[my_idx + 1])
+                except paramiko.ssh_exception.NoValidConnectionsError:
+                    isSSHworks = 0
+                    print("ssh fail")
+                    
+                    
+            if (isSSHworks == 1):
+                if(flag == 1) :
+                    sendfile(my_idx+1,temptxt)
+                    sendfile(my_idx-1,temptxt)
+                    
+                
+            # couple is dead
+            elif (isSSHworks == 0):
+                if MINE == couple_left:  # when right side is dead (here, node 4)
+                    changeInfo(ip_list[right_idx])  # write new file
+                    next_node = ip_list[right_idx + 1]
+                    pre_node = ip_list[left_idx - 1]
+                    sendFile(next_node, txt)
+                    sendFile(pre_node, txt)
 
-                for i in range(0, num_of_nodes):
-                    print(ip_list[i])
-                    ip_list[i] = f.readline()
-                    tempstr = "192.168.1." + str(MINE) + "\n"
-                    tempstr2 = ip_list[i]
-                    if (tempstr == tempstr2):
-                        my_idx = i
-                    node_list[i] = int(ip_list[i][10:])
-                    ip_list[i] = f.readline()
-
-                # check manager
-                managerList = f.readline()
-                f.close()
-                IS_MANAGER = isManager(managerList)
-
-                # Couple setting
-                isYouCouple()
-
-                isSSHworks = -1
-                # sys.exit(1)
-
-                if (MINE == couple_left):
-                    try:
-                        myssh = connectToPi(ip=ip_list[right_idx])
-                        isSSHworks = 1
-                        print("ssh success : ", ip_list[right_idx])
-                    except paramiko.ssh_exception.NoValidConnectionsError:
-                        isSSHworks = 0
-                        print("ssh fail")
-                elif (MINE == couple_right):
-                    try:
-                        myssh = connectToPi(ip=ip_list[left_idx])
-                        isSSHworks = 1
-                        print("ssh success : ", ip_list[left_idx])
-                    except paramiko.ssh_exception.NoValidConnectionsError:
-                        isSSHworks = 0
-                        print("ssh fail")
+                elif MINE == couple_right:
+                    changeInfo(ip_list[right_idx])  # write new file
+                    next_node = ip_list[right_idx + 1]
+                    pre_node = ip_list[left_idx - 1]
+                    sendFile(next_node, txt)
+                    sendFile(pre_node, txt)
 
                 else:
-                    try:
-                        myssh = connectToPi(ip=ip_list[my_idx + 1])
-                        isSSHworks = 1
-                        print("ssh success : ", ip_list[my_idx + 1])
-                    except paramiko.ssh_exception.NoValidConnectionsError:
-                        isSSHworks = 0
-                        print("ssh fail")
-
-                # couple is dead
-                if (isSSHworks == 0):
-                    if MINE == couple_left:  # when right side is dead (here, node 4)
-                        changeInfo(ip_list[right_idx])  # write new file
-                        next_node = ip_list[right_idx + 1]
-                        pre_node = ip_list[left_idx - 1]
-                        sendFile(next_node, txt)
-                        sendFile(pre_node, txt)
-
-                    elif MINE == couple_right:
-                        changeInfo(ip_list[right_idx])  # write new file
-                        next_node = ip_list[right_idx + 1]
-                        pre_node = ip_list[left_idx - 1]
-                        sendFile(next_node, txt)
-                        sendFile(pre_node, txt)
-
-                    else:
-                        changeInfo(ip_list[my_idx + 1])  # write new file
-                        next_node = ip_list[my_idx + 2]
-                        pre_node = ip_list[my_idx - 1]
-                        sendFile(next_node, txt)  # send file to next node
-                        sendFile(pre_node, txt)  # send file to previous node
+                    changeInfo(ip_list[my_idx + 1])  # write new file
+                    next_node = ip_list[my_idx + 2]
+                    pre_node = ip_list[my_idx - 1]
+                    sendFile(next_node, txt)  # send file to next node
+                    sendFile(pre_node, txt)  # send file to previous node
 
 
 def checkFile():
