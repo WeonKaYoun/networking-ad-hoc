@@ -350,8 +350,9 @@ class IsChangeThread(Thread):
                     
             if (isSSHworks == 1):
                 if(flag == 1) :
-                    sendfile(my_idx+1,temptxt)
-                    sendfile(my_idx-1,temptxt)
+                    if(IS_MANAGER == 0)
+                        sendfile(my_idx+1,temptxt)
+                        sendfile(my_idx-1,temptxt)
                     
                 
             # couple is dead
