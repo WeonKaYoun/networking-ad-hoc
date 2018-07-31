@@ -30,11 +30,11 @@ def adHocNetwork(dest, text) :
     myssh = connectToPi(ip=dest)
     routeInitial(myssh, text)
 
-def isManager(managerList) :
-    managers = managerList.split(" ")
-    for i in range(0, length(managers)) :
-        if(int(managers[i]) == MINE) return '1'
-    return '0'
+#def isManager(managerList) :
+#    managers = managerList.split(" ")
+#    for i in range(0, length(managers)) :
+#        if(int(managers[i]) == MINE) return '1'
+#    return '0'
 
 ## code starts ##
 f = open(INFO_PATH,'r')
@@ -54,11 +54,11 @@ managerList = f.readline()
 text +="\n" + managerList +"\""
 f.close()
 
-IS_MANAGER = isManager(managerList)
+#IS_MANAGER = isManager(managerList)
 
 if myIpIndex != (numOfNode-1)
     adHocNetwork(ipAddress[myIpIndex+1], text) # step 3 : route inputs to other nodes
 
-cmd = "python main.py " + IS_MANAGER # step 4 : start main.py
+cmd = "python main.py"# + IS_MANAGER # step 4 : start main.py
 os.system(cmd)
 print("done")

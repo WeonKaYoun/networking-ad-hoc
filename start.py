@@ -5,7 +5,7 @@ from threading import Thread, Condition
 MINE = 1
 ipAddress = []
 INFO_PATH = '/home/pi/info1.txt'
-IS_MANAGER = '0'
+#IS_MANAGER = '0'
 
 def connectToPi(ip, username='pi', pw='1357') :
     ssh = SSHClient()
@@ -37,12 +37,12 @@ def adHocNetwork(dest, text) :
     print(myssh)
     routeInitial(myssh, text)
     
-def isManager(managerList) :
-    managers = managerList.split(" ")
-    for i in range(0, len(managers)) :
-        if(int(managers[i]) == MINE):
-            return '1'
-    return '0'
+#def isManager(managerList) :
+#    managers = managerList.split(" ")
+#    for i in range(0, len(managers)) :
+#        if(int(managers[i]) == MINE):
+#            return '1'
+#    return '0'
 
 ## code starts ##
 myIpIndex = 0
@@ -61,7 +61,7 @@ for i in range(0, int(numOfNode)) :
 managerList = input()
 text +="\n" + managerList +"\""
 print("manager list : " + managerList)
-IS_MANAGER = isManager(managerList)
+#IS_MANAGER = isManager(managerList)
 print("IS_MANAGER : " + IS_MANAGER)
 
 cmd = "for i in $(seq 1); do echo " + text + ">> " + INFO_PATH + "; done"
@@ -69,7 +69,7 @@ os.system(cmd)
 
 adHocNetwork(ipAddress[1], text) # step 3 : route inputs to other nodes
 
-cmd = "python main.py " + IS_MANAGER # step 4 : start main.py
+cmd = "python main.py"# + IS_MANAGER # step 4 : start main.py
 #cmd = "python pyaudioPlayer.py" # for test
 os.system(cmd)
 print("program done")
