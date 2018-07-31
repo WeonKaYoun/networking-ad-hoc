@@ -53,15 +53,15 @@ ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = '192.168.1.2'
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
 
-num_of_nodes = 100
+num_of_nodes = 6
 start_of_nodeId = 0  # add ittttt
 txt = ""
 next_node = 0
 pre_node = 0
 # ip_list = [None] * (num_of_nodes)
 # node_list = [None] * (num_of_nodes)
-ip_list = []
-node_list = []
+#ip_list = []
+#node_list = []
 couple_left = 0
 couple_right = 0
 left_idx = 0
@@ -271,8 +271,8 @@ class IsChangeThread(Thread):
     def run(self):
         global num_of_nodes
         global start_of_nodeId
-        global ip_list
-        global node_list
+        #global ip_list
+        #global node_list
         global IS_MANAGER
         global next_node
         global pre_node
@@ -289,8 +289,13 @@ class IsChangeThread(Thread):
                 f.close()
             else:
                 num_of_nodes = int(line)
+                print(num_of_nodes)
                 start_of_nodeId = int(f.readline())
+                ip_list = [None] * (num_of_nodes)
+                node_list = [None] * (num_of_nodes)
+
                 for i in range(0, num_of_nodes):
+                    print(ip_list[i])
                     ip_list[i] = f.readline()
                     tempstr = "192.168.1." + str(MINE) + "\n"
                     tempstr2 = ip_list[i]
@@ -457,7 +462,7 @@ def checkDetection():  # for part 3
 def initializeVars():
     global num_of_nodes
     global start_of_nodeId
-    global ip_list
+    #global ip_list
     global node_list
     global IS_MANAGER
 
@@ -465,9 +470,9 @@ def initializeVars():
     line = f.readline()
     num_of_nodes = int(line)
     start_of_nodeId = int(line)
-    for i in range(0, num_of_nodes):
-        ip_list[i] = f.readline()
-        node_list[i] = int(ip_list[i][10:])
+   # for i in range(0, num_of_nodes):
+    #    ip_list[i] = f.readline()
+     #   node_list[i] = int(ip_list[i][10:])
     managerList = f.readline()
     IS_MANAGER = isManager(managerList)
 
@@ -489,5 +494,6 @@ checkDetection()  # for part 3
 # start()
 # sendFile(next_node,txt)
 # sendFile(pre_node,txt)
+
 
 
