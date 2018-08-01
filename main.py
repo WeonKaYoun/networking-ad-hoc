@@ -49,7 +49,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE = "3"
+MINE = "6"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -393,8 +393,9 @@ def checkFile():
             f = open(INPUT_FILE[i], 'r')
             line = f.readline()
             # print("checked file : " + line)
-            if line[1:5] == 'from':
-                line = line[5:6]
+            if idx = line.find('from'):
+                length = len(line)
+                line = line[idx+4:length-1]
                 f.close()
                 alert(int(line))
 
