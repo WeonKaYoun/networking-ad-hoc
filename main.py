@@ -6,6 +6,7 @@ from threading import Thread, Condition
 import time
 import sys
 import RPi.GPIO as GPIO
+import os, sys
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -232,11 +233,11 @@ class ConsumerThread(Thread):
             time.sleep(random.random())
 
 
-def isManager(managerList):
+def isManager(managerList, myPiAddress):
     global managers
     managers = managerList.split(" ")
     for i in range(0, len(managers)):
-        if (int(managers[i]) == MINE):
+        if (managers[i] == myPiAddress):
             return '1'
     return '0'
 
@@ -317,7 +318,7 @@ class IsChangeThread(Thread):
             temptxt = temptxt + managerList + "\n"
             f.close()
             print(temptxt)
-            IS_MANAGER = isManager(managerList)
+            IS_MANAGER = isManager(managerList, ip_list[my_idx])
 
             # Couple setting
             isYouCouple()
@@ -357,7 +358,7 @@ class IsChangeThread(Thread):
 
             if (isSSHworks == 1):
                 if (flag == 1):
-                    if (IS_MANAGER == 0)
+                    if (IS_MANAGER == 0) :
                         sendfile(my_idx + 1, temptxt)
                         sendfile(my_idx - 1, temptxt)
 
@@ -481,6 +482,7 @@ def checkDetection():  # for part 3
 
 
 def initializeVars():
+    global node_num_file
     global num_of_nodes
     global start_of_nodeId
     # global ip_list
@@ -491,27 +493,37 @@ def initializeVars():
 
     f = open(INFO_FILE, 'r')
     line = f.readline()
+    node_num_file = int(line)
     num_of_nodes = int(line)
+    line = f.readline()
     start_of_nodeId = int(line)
 
-    temp_ip = []
-
-    for i in range(0, num_of_nodes):
-        temp_ip.append(f.readline())
-        node_list[i] = int(ip_list[i][10:])
+    temp_ip = [None] * (node_num_file)
+    node_list = [None] * (node_num_file)
+    
+    for i in range(0, node_num_file):
+        temp_ip[i] = f.readline()
+        node_list[i] = int(temp_ip[i][10:])
         if node_list[i] == int(MINE) :
             my_idx = i
     isYouCouple()
-    if int(MINE) <= couple_left :
-        ROUTE_PATH = temp_ip[i-1]
-    else :
-        ROUTE_PATH = temp_ip[i+1]
 
     managerList = f.readline()
-    IS_MANAGER = isManager(managerList)
+    print(temp_ip[my_idx])
+    IS_MANAGER = isManager(managerList, temp_ip[my_idx])
+    
+    if IS_MANAGER == 0 :
+        if int(MINE) <= couple_left :
+            ROUTE_PATH = temp_ip[my_idx-1]
+        else :
+            ROUTE_PATH = temp_ip[my_idx+1]
+        
+    print(ROUTE_PATH)
 
     # seojeong should complete this function and call this func. when this file starts
 
+cmd = 'python pyaudioPlayer.py'
+os.system(cmd)
 
 initializeVars()
 ProducerThread().start()
@@ -530,6 +542,3 @@ checkDetection()  # for part 3
 # start()
 # sendFile(next_node,txt)
 # sendFile(pre_node,txt)
-
-
-

@@ -25,9 +25,10 @@ def routeInitial(myssh, text) :
     cmd = "for i in $(seq 1); do echo " + text + ">> " + info_path[1] + "; done"
     sendCommand(myssh, command=cmd)
     print("start other")
-    cmd = "python middle_node_start.py"
+    #cmd = "python middle_node_start.py"
+    cmd1 = "python middle_node.py"
     #cmd = "python main.py" # for test
-    sendCommand(myssh, command=cmd) # step 3-2 : run middle_node_start.py to route input to neighbor's neighbor
+    sendCommand(myssh, command=cmd1) # step 3-2 : run middle_node_start.py to route input to neighbor's neighbor
     #startOtherNodeThread = StartOtherNodeThread()
     #thread = threading.Thread(target=startOtherNodeThread.run)
     #thread.start()
@@ -61,7 +62,7 @@ for i in range(0, int(numOfNode)) :
 managerList = input()
 text +="\n" + managerList +"\""
 print("manager list : " + managerList)
-IS_MANAGER = isManager(managerList)
+IS_MANAGER = isManager(managerList) # !!! delete IS_MANAGER !!!
 print("IS_MANAGER : " + IS_MANAGER)
 
 cmd = "for i in $(seq 1); do echo " + text + ">> " + INFO_PATH + "; done"
