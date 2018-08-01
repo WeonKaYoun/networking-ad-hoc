@@ -23,40 +23,33 @@ def routeInitial(myssh, text) :
     #cmd = "vi -c \"%s/initail/"+text+"/g\" -c \"wq\" " + info_path[1]+"" # step 3-1 : write txt file in neibor node
     cmd = "for i in $(seq 1); do echo " + text + ">> " + info_path[1] + "; done"
     sendCommand(myssh, command=cmd)
-    cmd = "python middle_node_start.py"
+    cmd = "python middle_node.py"
     sendCommand(myssh, command=cmd) # step 3-2 : run middle_node_start.py to route input to neighbor's neighbor
     
 def adHocNetwork(dest, text) :
     myssh = connectToPi(ip=dest)
     routeInitial(myssh, text)
 
-def isManager(managerList) :
-    managers = managerList.split(" ")
-    for i in range(0, length(managers)) :
-        if(int(managers[i]) == MINE) return '1'
-    return '0'
-
 ## code starts ##
 f = open(INFO_PATH,'r')
 numOfNode = f.readline()
+
 startNodeId = f.readline()
 #text = numOfNode + "\n" + startNodeId
-text = "\"" + numOfNode + "\n" + startNodeId
+text = "\"" + numOfNode + startNodeId
 for i in range(0, int(numOfNode)) :
     tempIp = f.readline()
     ipAddress.append(tempIp)
-    text += "\n" + tempIp
+    text = text + tempIp
     if int(tempIp[10:]) == MINE :
         myIpIndex = i
 
 managerList = f.readline()
 #text += "\n" + managerList
-text +="\n" + managerList +"\""
+text = text + managerList +"\""
 f.close()
 
-IS_MANAGER = isManager(managerList)
-
-if myIpIndex != (numOfNode-1)
+if myIpIndex != (int(numOfNode)-1) :
     adHocNetwork(ipAddress[myIpIndex+1], text) # step 3 : route inputs to other nodes
 
 cmd = "python main.py" # step 4 : start main.py
