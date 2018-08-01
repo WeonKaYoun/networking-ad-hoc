@@ -359,8 +359,8 @@ class IsChangeThread(Thread):
             if (isSSHworks == 1):
                 if (flag == 1):
                     if (IS_MANAGER == 0) :
-                        sendfile(my_idx + 1, temptxt)
-                        sendfile(my_idx - 1, temptxt)
+                        sendFile(my_idx + 1, temptxt)
+                        sendFile(my_idx - 1, temptxt)
 
 
             # couple is dead
@@ -385,7 +385,24 @@ class IsChangeThread(Thread):
                     pre_node = ip_list[my_idx - 1]
                     sendFile(next_node, txt)  # send file to next node
                     sendFile(pre_node, txt)  # send file to previous node
+                
+                f = open('info.txt', 'r')
+                line = f.readline()
+                node_num_file = int(line)
+                ip_list = [None] * (node_num_file)
+                node_list = [None] * (node_num_file)
 
+                num_of_nodes = node_num_file
+
+                for i in range(0, node_num_file):
+                    ip_list[i] = f.readline()
+                    temptxt += ip_list[i]
+                    tempstr = "192.168.1." + str(MINE) + "\n"
+                    tempstr2 = ip_list[i]
+                    if (tempstr == tempstr2):
+                        my_idx = i
+                    node_list[i] = int(ip_list[i][10:])
+                f.close()
 
 def checkFile():
     while True:
