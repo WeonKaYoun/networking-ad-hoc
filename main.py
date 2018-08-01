@@ -49,7 +49,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE = "1"
+MINE = "3"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
