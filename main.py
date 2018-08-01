@@ -70,7 +70,7 @@ right_idx = 0
 my_idx = 0
 managers = []
 
-ALERT_TABLE = {1: 0, 2: 0, 3: 0}  # NODE : IS_DETECTED // !!! should change this !!!
+ALERT_TABLE = {}  # NODE : IS_DETECTED // !!! should change this !!!
 # numOfNode = 3
 condition_alert = Condition()
 
@@ -393,7 +393,7 @@ def checkFile():
             f = open(INPUT_FILE[i], 'r')
             line = f.readline()
             # print("checked file : " + line)
-            if idx = line.find('from'):
+            if idx == line.find('from'):
                 length = len(line)
                 line = line[idx+4:length-1]
                 f.close()
@@ -491,6 +491,7 @@ def initializeVars():
     global IS_MANAGER
     global ROUTE_PATH
     global my_idx
+    global ALERT_TABLE
 
     f = open(INFO_FILE, 'r')
     line = f.readline()
@@ -518,7 +519,9 @@ def initializeVars():
             ROUTE_PATH = temp_ip[my_idx-1]
         else :
             ROUTE_PATH = temp_ip[my_idx+1]
-        
+    else :
+        for i in range(1, node_num_file+1) :
+            ALERT_TABLE[node_list[i]] = 0
     print(ROUTE_PATH)
 
     # seojeong should complete this function and call this func. when this file starts
