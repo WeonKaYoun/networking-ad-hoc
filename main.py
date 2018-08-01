@@ -296,6 +296,7 @@ class IsChangeThread(Thread):
             temptxt = line
             start_of_nodeId = int(f.readline())
             ip_list = [None] * (node_num_file)
+            org_node_list = list(node_list)
             node_list = [None] * (node_num_file)
 
             flag = 0
@@ -314,11 +315,20 @@ class IsChangeThread(Thread):
                 node_list[i] = int(ip_list[i][10:])
 
             # check manager
+            ### !!! HERE SEOJEONG !!!
             managerList = f.readline()
             temptxt = temptxt + managerList + "\n"
             f.close()
             print(temptxt)
             IS_MANAGER = isManager(managerList, ip_list[my_idx])
+
+            for i in range(0, num_of_nodes) :
+                if org_node_list[i] != node_list[i] :
+                    del_idx = i
+                    break
+                if i == (num_of_nodes -1) :
+                    del_idx = i+1
+            del ALERT_TABLE[org_node_list[del_idx]]
 
             # Couple setting
             isYouCouple()
@@ -364,6 +374,7 @@ class IsChangeThread(Thread):
 
 
             # couple is dead
+            ### !!! HERE SEOJEONG !!!
             elif (isSSHworks == 0):
                 if MINE == couple_left:  # when right side is dead (here, node 4)
                     changeInfo(ip_list[right_idx])  # write new file
@@ -371,6 +382,8 @@ class IsChangeThread(Thread):
                     pre_node = ip_list[left_idx - 1]
                     sendFile(next_node, txt)
                     sendFile(pre_node, txt)
+                    if IS_MANAGER == 1 :
+                        del ALERT_TABLE[node_list[right_idx]]
 
                 elif MINE == couple_right:
                     changeInfo(ip_list[right_idx])  # write new file
@@ -378,6 +391,8 @@ class IsChangeThread(Thread):
                     pre_node = ip_list[left_idx - 1]
                     sendFile(next_node, txt)
                     sendFile(pre_node, txt)
+                    if IS_MANAGER == 1 :
+                        del ALERT_TABLE[node_list[left_idx]]
 
                 else:
                     changeInfo(ip_list[my_idx + 1])  # write new file
@@ -385,6 +400,11 @@ class IsChangeThread(Thread):
                     pre_node = ip_list[my_idx - 1]
                     sendFile(next_node, txt)  # send file to next node
                     sendFile(pre_node, txt)  # send file to previous node
+                    if IS_MANAGER == 1 :
+                        if MINE > couple_right :
+                            del ALERT_TABLE[node_list[my_idx+1]]
+                        else :
+                            del ALERT_TABLE[node_list[my_idx-1]]
 
 
 def checkFile():
