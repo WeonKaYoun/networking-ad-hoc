@@ -52,6 +52,6 @@ f.close()
 if myIpIndex != (int(numOfNode)-1) :
     adHocNetwork(ipAddress[myIpIndex+1], text) # step 3 : route inputs to other nodes
 
-cmd = "python main.py" # step 4 : start main.py
+cmd = "python3 main.py" # step 4 : start main.py
 os.system(cmd)
 print("done")

@@ -70,7 +70,7 @@ os.system(cmd)
 
 adHocNetwork(ipAddress[1], text) # step 3 : route inputs to other nodes
 
-cmd = "python main.py" # step 4 : start main.py
+cmd = "python3 main.py" # step 4 : start main.py
 #cmd = "python pyaudioPlayer.py" # for test
 os.system(cmd)
 print("program done")
