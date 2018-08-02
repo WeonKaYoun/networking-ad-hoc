@@ -161,9 +161,10 @@ def isDanger():  # for part 2
 
 
 def alert(detectedNode):
+    idx = int(detectedNode)
     condition_alert.acquire()
-    if ALERT_TABLE[detectedNode] == 0:
-        ALERT_TABLE[detectedNode] = 1
+    if ALERT_TABLE[idx] == 0:
+        ALERT_TABLE[idx] = 1
     condition_alert.notify()
     condition_alert.release()
 
@@ -261,7 +262,7 @@ def isYouCouple():
             if (node_list[i] < mid and couple_left < node_list[i]):
                 couple_left = node_list[i]
                 left_idx = i
-                print("isyoucoule left idx", i)
+                #print("isyoucoule left idx", i)
             elif (node_list[i] > mid and couple_right > node_list[i]):
                 couple_right = node_list[i]
                 right_idx = i
@@ -271,7 +272,7 @@ def isYouCouple():
         couple_right = node_list[mid_idx + 1]
         left_idx = mid_idx
         right_idx = mid_idx + 1
-    print("isyoucoule end left idx", left_idx)
+    #print("isyoucoule end left idx", left_idx)
     #print("left", couple_left)
     #print("right", couple_right)
     #print("left idx", left_idx)
@@ -345,7 +346,7 @@ class IsChangeThread(Thread):
                 else :
                     ROUTE_PATH = ip_list[my_idx + 1]
                 # sys.exit(1)
-                print("couple_right",couple_right)
+                #print("couple_right",couple_right)
                 if (int(MINE) == couple_left):
                     try:
                         myssh = connectToPi(ip=ip_list[right_idx])
@@ -357,10 +358,10 @@ class IsChangeThread(Thread):
                 elif (int(MINE) == couple_right):
                     #print("herehererehrlajr;lkej ;rakjs")
                     try:
-                        print("left_idx",left_idx)
-                        print("ip_list[left_idx]",ip_list[left_idx])
+                        #print("left_idx",left_idx)
+                        #print("ip_list[left_idx]",ip_list[left_idx])
                         myssh = connectToPi(ip=ip_list[left_idx])
-                        print("ip_list[left_idx]",ip_list[left_idx])
+                        #print("ip_list[left_idx]",ip_list[left_idx])
                         isSSHworks = 1
                         print("ssh success : ", ip_list[left_idx])
                     except paramiko.ssh_exception.NoValidConnectionsError:
@@ -504,6 +505,7 @@ def checkDetection():  # for part 3
         if idx == -1:
             f.close()
         else:
+            line = line[0:len(line)-1]
             for i in range(idx + 4, len(line)):
                 if int(line[i]) > -1 and int(line[i]) < 10:
                     last_idx = i
@@ -560,7 +562,7 @@ def initializeVars():
     managerList = f.readline()
     #print(temp_ip[my_idx])
     IS_MANAGER = isManager(managerList, node_list[my_idx])
-    print("IS MA", IS_MANAGER)
+    #print("IS MA", IS_MANAGER)
     print("couple_left",couple_left)
     if IS_MANAGER == 0 :
         if int(MINE) <= couple_left :
