@@ -387,35 +387,32 @@ class IsChangeThread(Thread):
             # couple is dead
             ### !!! HERE SEOJEONG !!!
             elif (isSSHworks == 0):
-                if MINE == couple_left:  # when right side is dead (here, node 4)
+                if int(MINE) == couple_left:  # when right side is dead (here, node 4)
                     changeInfo(ip_list[right_idx])  # write new file
                     next_node = ip_list[right_idx + 1]
                     pre_node = ip_list[left_idx - 1]
                     sendFile(next_node, txt)
                     sendFile(pre_node, txt)
-                    if IS_MANAGER == 1 :
-                        del ALERT_TABLE[node_list[right_idx]]
 
-                elif MINE == couple_right:
+                elif int(MINE) == couple_right:
                     changeInfo(ip_list[right_idx])  # write new file
                     next_node = ip_list[right_idx + 1]
                     pre_node = ip_list[left_idx - 1]
                     sendFile(next_node, txt)
                     sendFile(pre_node, txt)
-                    if IS_MANAGER == 1 :
-                        del ALERT_TABLE[node_list[left_idx]]
 
                 else:
-                    changeInfo(ip_list[my_idx + 1])  # write new file
-                    next_node = ip_list[my_idx + 2]
-                    pre_node = ip_list[my_idx - 1]
-                    sendFile(next_node, txt)  # send file to next node
-                    sendFile(pre_node, txt)  # send file to previous node
-                    if IS_MANAGER == 1 :
-                        if MINE > couple_right :
-                            del ALERT_TABLE[node_list[my_idx+1]]
-                        else :
-                            del ALERT_TABLE[node_list[my_idx-1]]
+                    if IS_MANAGER == 0 :
+                        changeInfo(ip_list[my_idx + 1])  # write new file
+                        next_node = ip_list[my_idx + 2]
+                        pre_node = ip_list[my_idx - 1]
+                        sendFile(next_node, txt)  # send file to next node
+                        sendFile(pre_node, txt)  # send file to previous node
+                    #elif IS_MANAGER == 1 :
+                       # if int(MINE) > couple_right :
+                            #del ALERT_TABLE[node_list[my_idx-1]]
+                        #else :
+                            #del ALERT_TABLE[node_list[my_idx+1]]
                 
                 f = open('info.txt', 'r')
                 line = f.readline()
@@ -424,14 +421,17 @@ class IsChangeThread(Thread):
                 node_list = [None] * (node_num_file)
 
                 num_of_nodes = node_num_file
+                start_of_nodeId = f.readline()
 
                 for i in range(0, node_num_file):
                     ip_list[i] = f.readline()
+                    #ip_list[i] = ip_list[i][0:len(ip_list[i])-1]
                     temptxt += ip_list[i]
                     tempstr = "192.168.1." + str(MINE) + "\n"
                     tempstr2 = ip_list[i]
                     if (tempstr == tempstr2):
                         my_idx = i
+                    
                     node_list[i] = int(ip_list[i][10:])
                 f.close()
 
@@ -458,11 +458,13 @@ def lightUpOneLED():
 
 def lightUpTwoLED():
     for i in range(0, 2):
-        GPIO.output(24, False)
-        GPIO.output(23, False)
-        time.sleep(1)
+        print(str(i) + "turn on")
         GPIO.output(24, True)
         GPIO.output(23, True)
+        time.sleep(1)
+        print(str(i) + "turn off")
+        GPIO.output(24, False)
+        GPIO.output(23, False)
         time.sleep(1)
 
 
@@ -505,18 +507,13 @@ def checkDetection():  # for part 3
         if idx == -1:
             f.close()
         else:
-            line = line[0:len(line)-1]
-            for i in range(idx + 4, len(line)):
-                if int(line[i]) > -1 and int(line[i]) < 10:
-                    last_idx = i
-                    #print("last_idx : ", last_idx)
-
-            line = line[0:last_idx + 1]
+            line = line[0:len(line)]
             print("This is line : ", line)
             nodes = line.split("from")
             f.close()
             # destPi = ROUTING_TABLE[nodes[0]]
             if IS_MANAGER == 1:
+                print("NODESSSS ", nodes[1])
                 alert(nodes[1])
             else:
                 adHocNetwork(ROUTE_PATH, nodes[1])
@@ -551,19 +548,18 @@ def initializeVars():
 
     temp_ip = [None] * (node_num_file)
     node_list = [None] * (node_num_file)
-    
     for i in range(0, node_num_file):
         temp_ip[i] = f.readline()
+        print("temp_ip[i]", temp_ip[i])
         node_list[i] = int(temp_ip[i][10:])
         if node_list[i] == int(MINE) :
             my_idx = i
-    #isYouCouple()
-
+    isYouCouple()
     managerList = f.readline()
     #print(temp_ip[my_idx])
     IS_MANAGER = isManager(managerList, node_list[my_idx])
     #print("IS MA", IS_MANAGER)
-    print("couple_left",couple_left)
+    #print("couple_left",couple_left)
     if IS_MANAGER == 0 :
         if int(MINE) <= couple_left :
             ROUTE_PATH = temp_ip[my_idx-1]
