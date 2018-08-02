@@ -49,7 +49,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="3"
+MINE ="4"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -157,7 +157,7 @@ def changeInfo(ip):
 # return randNum
 def isDanger():  # for part 2
     randNum = random.randrange(0, 2)
-    return 1
+    return 0
 
 
 def alert(detectedNode):
@@ -172,7 +172,7 @@ def checkWav(sound):  # for part 2
     global isWork
     isWork = isWork + 1
     check = isDanger()
-    print("check : ", check)
+    #print("check : ", check)
     if check == 1:
         # should route danger to neighbor node
         print("it is danger")
@@ -234,11 +234,13 @@ class ConsumerThread(Thread):
             #time.sleep(random.random())
 
 
+
 def isManager(managerList, myPiAddress):
     global managers
+    managerList = managerList[0:len(managerList)-1]
     managers = managerList.split(" ")
     for i in range(0, len(managers)):
-        if (managers[i] == myPiAddress):
+        if (managers[i] == str(myPiAddress)):
             return 1
     return 0
 
@@ -336,44 +338,44 @@ class IsChangeThread(Thread):
 
             # Couple setting
             isYouCouple()
-            if int(MINE) <= couple_left :
-                ROUTE_PATH = ip_list[my_idx - 1]
-            else :
-                ROUTE_PATH = ip_list[my_idx + 1]
+            isSSHworks = 0
+            if IS_MANAGER == 0 :
+                if int(MINE) <= couple_left :
+                    ROUTE_PATH = ip_list[my_idx - 1]
+                else :
+                    ROUTE_PATH = ip_list[my_idx + 1]
+                # sys.exit(1)
+                print("couple_right",couple_right)
+                if (int(MINE) == couple_left):
+                    try:
+                        myssh = connectToPi(ip=ip_list[right_idx])
+                        isSSHworks = 1
+                        print("ssh success : ", ip_list[right_idx])
+                    except paramiko.ssh_exception.NoValidConnectionsError:
+                        isSSHworks = 0
+                        print("ssh fail")
+                elif (int(MINE) == couple_right):
+                    #print("herehererehrlajr;lkej ;rakjs")
+                    try:
+                        print("left_idx",left_idx)
+                        print("ip_list[left_idx]",ip_list[left_idx])
+                        myssh = connectToPi(ip=ip_list[left_idx])
+                        print("ip_list[left_idx]",ip_list[left_idx])
+                        isSSHworks = 1
+                        print("ssh success : ", ip_list[left_idx])
+                    except paramiko.ssh_exception.NoValidConnectionsError:
+                        isSSHworks = 0
+                        print("ssh fail")
 
-            isSSHworks = -1
-            # sys.exit(1)
-            print("couple_right",couple_right)
-            if (int(MINE) == couple_left):
-                try:
-                    myssh = connectToPi(ip=ip_list[right_idx])
-                    isSSHworks = 1
-                    print("ssh success : ", ip_list[right_idx])
-                except paramiko.ssh_exception.NoValidConnectionsError:
-                    isSSHworks = 0
-                    print("ssh fail")
-            elif (int(MINE) == couple_right):
-                #print("herehererehrlajr;lkej ;rakjs")
-                try:
-                    print("left_idx",left_idx)
-                    print("ip_list[left_idx]",ip_list[left_idx])
-                    myssh = connectToPi(ip=ip_list[left_idx])
-                    print("ip_list[left_idx]",ip_list[left_idx])
-                    isSSHworks = 1
-                    print("ssh success : ", ip_list[left_idx])
-                except paramiko.ssh_exception.NoValidConnectionsError:
-                    isSSHworks = 0
-                    print("ssh fail")
-
-            else:
-                try:
-                    myssh = connectToPi(ip=ip_list[my_idx + 1])
-                    isSSHworks = 1
-                    print("ssh success : ", ip_list[my_idx + 1])
-                except paramiko.ssh_exception.NoValidConnectionsError:
-                    isSSHworks = 0
-                    print("ssh fail")
-
+                else:
+                    try:
+                        myssh = connectToPi(ip=ip_list[my_idx + 1])
+                        isSSHworks = 1
+                        print("ssh success : ", ip_list[my_idx + 1])
+                    except paramiko.ssh_exception.NoValidConnectionsError:
+                        isSSHworks = 0
+                        print("ssh fail")
+    
             if (isSSHworks == 1):
                 if (flag == 1):
                     if (IS_MANAGER == 0) :
@@ -558,6 +560,7 @@ def initializeVars():
     managerList = f.readline()
     #print(temp_ip[my_idx])
     IS_MANAGER = isManager(managerList, node_list[my_idx])
+    print("IS MA", IS_MANAGER)
     print("couple_left",couple_left)
     if IS_MANAGER == 0 :
         if int(MINE) <= couple_left :
