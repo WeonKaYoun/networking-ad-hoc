@@ -1,4 +1,5 @@
 from paramiko import SSHClient, AutoAddPolicy
+import paramiko
 import random
 import pyaudio
 import wave
@@ -49,12 +50,12 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="4"
+MINE ="3"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
 
-num_of_nodes = 4
+num_of_nodes = 6
 start_of_nodeId = 0  # add ittttt
 txt = ""
 next_node = 0
@@ -352,6 +353,9 @@ class IsChangeThread(Thread):
                         myssh = connectToPi(ip=ip_list[right_idx])
                         isSSHworks = 1
                         print("ssh success : ", ip_list[right_idx])
+                    except paramiko.ssh_exception.AuthenticationException:
+                        isSSHworks=0
+                        print("ssh fail")
                     except paramiko.ssh_exception.NoValidConnectionsError:
                         isSSHworks = 0
                         print("ssh fail")
@@ -364,6 +368,9 @@ class IsChangeThread(Thread):
                         #print("ip_list[left_idx]",ip_list[left_idx])
                         isSSHworks = 1
                         print("ssh success : ", ip_list[left_idx])
+                    except paramiko.ssh_exception.AuthenticationException:
+                        isSSHworks=0
+                        print("ssh fail")
                     except paramiko.ssh_exception.NoValidConnectionsError:
                         isSSHworks = 0
                         print("ssh fail")
@@ -373,6 +380,9 @@ class IsChangeThread(Thread):
                         myssh = connectToPi(ip=ip_list[my_idx + 1])
                         isSSHworks = 1
                         print("ssh success : ", ip_list[my_idx + 1])
+                    except paramiko.ssh_exception.AuthenticationException:
+                        isSSHworks=0
+                        print("ssh fail")
                     except paramiko.ssh_exception.NoValidConnectionsError:
                         isSSHworks = 0
                         print("ssh fail")
