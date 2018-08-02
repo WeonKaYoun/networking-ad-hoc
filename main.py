@@ -400,20 +400,17 @@ class IsChangeThread(Thread):
                     pre_node = ip_list[my_idx - 1]
                     sendFile(next_node, txt)  # send file to next node
                     sendFile(pre_node, txt)  # send file to previous node
-<<<<<<< HEAD
                     if IS_MANAGER == 1 :
                         if MINE > couple_right :
                             del ALERT_TABLE[node_list[my_idx+1]]
                         else :
                             del ALERT_TABLE[node_list[my_idx-1]]
-=======
                 
                 f = open('info.txt', 'r')
                 line = f.readline()
                 node_num_file = int(line)
                 ip_list = [None] * (node_num_file)
                 node_list = [None] * (node_num_file)
->>>>>>> fd877ac6c20c345507bc497131fdb6ba8911642b
 
                 num_of_nodes = node_num_file
 
