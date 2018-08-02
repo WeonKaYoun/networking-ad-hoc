@@ -17,7 +17,7 @@ INFO_FILE = 'info.txt'
 NO_DETECTION = "node"
 INPUT_FILE = ["/home/pi/detect1.txt", "/home/pi/detect2.txt", "/home/pi/detect3.txt", "/home/pi/detect4.txt",
               "/home/pi/detect5.txt"]
-NUM_OF_FILE = 6
+NUM_OF_FILE = 5
 TARGET_MINE = 0
 TARGET_OTHER = 0
 IS_MANAGER = 0
@@ -49,12 +49,12 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE = "6"
+MINE ="3"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
 
-num_of_nodes = 6
+num_of_nodes = 4
 start_of_nodeId = 0  # add ittttt
 txt = ""
 next_node = 0
@@ -65,8 +65,8 @@ pre_node = 0
 node_list = []
 couple_left = 0
 couple_right = 0
-left_idx = 0
-right_idx = 0
+left_idx = -1
+right_idx =0
 my_idx = 0
 managers = []
 
@@ -76,7 +76,7 @@ condition_alert = Condition()
 
 
 def connectToPi(ip, username='pi', pw='1357'):
-    # print('connecting to {}@{}...'.format(username,ip))
+    print('connecting to {}@{}...'.format(username,ip))
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(AutoAddPolicy())
     ssh.connect(ip, username=username, password=pw)
@@ -99,7 +99,7 @@ def routeDetection(myssh, srcNode):
     replaceStr = MINE + "from" + srcNode
     input_file = INPUT_FILE[TARGET_OTHER].split("/home/pi/")
     cmd = "vi -c \"%s/node/" + replaceStr + "/g\" -c \"wq\" " + input_file[1] + ""
-    print("JUST WROTE" + replaceStr + "IT'S TARGET WAS " + str(TARGET_OTHER))
+    #print("JUST WROTE" + replaceStr + "IT'S TARGET WAS " + str(TARGET_OTHER))
     TARGET_OTHER = (TARGET_OTHER + 1) % NUM_OF_FILE
     sendCommand(myssh, command=cmd)
 
@@ -157,7 +157,7 @@ def changeInfo(ip):
 # return randNum
 def isDanger():  # for part 2
     randNum = random.randrange(0, 2)
-    return 0
+    return 1
 
 
 def alert(detectedNode):
@@ -172,6 +172,7 @@ def checkWav(sound):  # for part 2
     global isWork
     isWork = isWork + 1
     check = isDanger()
+    print("check : ", check)
     if check == 1:
         # should route danger to neighbor node
         print("it is danger")
@@ -230,7 +231,7 @@ class ConsumerThread(Thread):
             condition_queue.notify()
             condition_queue.release()
             checkWav(output)
-            time.sleep(random.random())
+            #time.sleep(random.random())
 
 
 def isManager(managerList, myPiAddress):
@@ -238,8 +239,8 @@ def isManager(managerList, myPiAddress):
     managers = managerList.split(" ")
     for i in range(0, len(managers)):
         if (managers[i] == myPiAddress):
-            return '1'
-    return '0'
+            return 1
+    return 0
 
 
 def isYouCouple():
@@ -247,6 +248,8 @@ def isYouCouple():
     # set couple_left , couple_right
     global couple_left
     global couple_right
+    global left_idx
+    global right_idx
 
     couple_left = 0
     couple_right = 999999
@@ -256,6 +259,7 @@ def isYouCouple():
             if (node_list[i] < mid and couple_left < node_list[i]):
                 couple_left = node_list[i]
                 left_idx = i
+                print("isyoucoule left idx", i)
             elif (node_list[i] > mid and couple_right > node_list[i]):
                 couple_right = node_list[i]
                 right_idx = i
@@ -265,12 +269,12 @@ def isYouCouple():
         couple_right = node_list[mid_idx + 1]
         left_idx = mid_idx
         right_idx = mid_idx + 1
-
-    print("left", couple_left)
-    print("right", couple_right)
-    print("left idx", left_idx)
-    print("right idx", right_idx)
-    print("my idx", my_idx)
+    print("isyoucoule end left idx", left_idx)
+    #print("left", couple_left)
+    #print("right", couple_right)
+    #print("left idx", left_idx)
+    #print("right idx", right_idx)
+    #print("my idx", my_idx)
 
 
 class IsChangeThread(Thread):
@@ -319,16 +323,16 @@ class IsChangeThread(Thread):
             managerList = f.readline()
             temptxt = temptxt + managerList + "\n"
             f.close()
-            print(temptxt)
-            IS_MANAGER = isManager(managerList, ip_list[my_idx])
-
-            for i in range(0, num_of_nodes) :
-                if org_node_list[i] != node_list[i] :
-                    del_idx = i
-                    break
-                if i == (num_of_nodes -1) :
-                    del_idx = i+1
-            del ALERT_TABLE[org_node_list[del_idx]]
+            #print(temptxt)
+            IS_MANAGER = isManager(managerList, node_list[my_idx])
+            if flag == 1:
+                for i in range(0, num_of_nodes) :
+                    if org_node_list[i] != node_list[i] :
+                        del_idx = i
+                        break
+                    if i == (num_of_nodes -1) :
+                        del_idx = i+1
+                del ALERT_TABLE[org_node_list[del_idx]]
 
             # Couple setting
             isYouCouple()
@@ -339,8 +343,8 @@ class IsChangeThread(Thread):
 
             isSSHworks = -1
             # sys.exit(1)
-
-            if (MINE == couple_left):
+            print("couple_right",couple_right)
+            if (int(MINE) == couple_left):
                 try:
                     myssh = connectToPi(ip=ip_list[right_idx])
                     isSSHworks = 1
@@ -348,9 +352,13 @@ class IsChangeThread(Thread):
                 except paramiko.ssh_exception.NoValidConnectionsError:
                     isSSHworks = 0
                     print("ssh fail")
-            elif (MINE == couple_right):
+            elif (int(MINE) == couple_right):
+                #print("herehererehrlajr;lkej ;rakjs")
                 try:
+                    print("left_idx",left_idx)
+                    print("ip_list[left_idx]",ip_list[left_idx])
                     myssh = connectToPi(ip=ip_list[left_idx])
+                    print("ip_list[left_idx]",ip_list[left_idx])
                     isSSHworks = 1
                     print("ssh success : ", ip_list[left_idx])
                 except paramiko.ssh_exception.NoValidConnectionsError:
@@ -457,7 +465,7 @@ def lightUpTwoLED():
 
 class LEDThread(Thread):
     def run(self):
-        print("running thread")
+        #print("running thread")
         global ALERT_TABLE
         while True:
             howManyDetected = 0
@@ -472,7 +480,7 @@ class LEDThread(Thread):
                         isMiddle = 1
             condition_alert.notify()
             condition_alert.release()
-            print("3 " + str(howManyDetected))
+            #print("3 " + str(howManyDetected))
             if howManyDetected == 1:
                 if isMiddle == 1:
                     lightUpTwoLED()
@@ -497,7 +505,7 @@ def checkDetection():  # for part 3
             for i in range(idx + 4, len(line)):
                 if int(line[i]) > -1 and int(line[i]) < 10:
                     last_idx = i
-                    print("last_idx : ", last_idx)
+                    #print("last_idx : ", last_idx)
 
             line = line[0:last_idx + 1]
             print("This is line : ", line)
@@ -508,8 +516,8 @@ def checkDetection():  # for part 3
                 alert(nodes[1])
             else:
                 adHocNetwork(ROUTE_PATH, nodes[1])
-            print("in check detect fuck nodes[0]", nodes[0])
-            print("in check detect fuck nodes[1]", nodes[1])
+            #print("in check detect fuck nodes[0]", nodes[0])
+            #print("in check detect fuck nodes[1]", nodes[1])
             # print("in check detect fuck destPi", destPi)
             f = open(INPUT_FILE[TARGET_MINE], 'w+')
             f.write(NO_DETECTION)
@@ -545,26 +553,29 @@ def initializeVars():
         node_list[i] = int(temp_ip[i][10:])
         if node_list[i] == int(MINE) :
             my_idx = i
-    isYouCouple()
+    #isYouCouple()
 
     managerList = f.readline()
-    print(temp_ip[my_idx])
-    IS_MANAGER = isManager(managerList, temp_ip[my_idx])
-    
+    #print(temp_ip[my_idx])
+    IS_MANAGER = isManager(managerList, node_list[my_idx])
+    print("couple_left",couple_left)
     if IS_MANAGER == 0 :
         if int(MINE) <= couple_left :
             ROUTE_PATH = temp_ip[my_idx-1]
+            print("temp_ip[my_idx-1]",temp_ip[my_idx-1])
+            
         else :
             ROUTE_PATH = temp_ip[my_idx+1]
+            print("temp_ip[my_idx+1]",temp_ip[my_idx+1])
     else :
-        for i in range(1, node_num_file+1) :
+        for i in range(0, node_num_file) :
             ALERT_TABLE[node_list[i]] = 0
-    print(ROUTE_PATH)
+    print("ROUTH_PATH : ",ROUTE_PATH)
 
     # seojeong should complete this function and call this func. when this file starts
 
-cmd = 'python pyaudioPlayer.py'
-os.system(cmd)
+#cmd = 'python pyaudioPlayer.py'
+#os.system(cmd)
 
 initializeVars()
 ProducerThread().start()
