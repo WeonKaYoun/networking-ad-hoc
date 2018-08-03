@@ -51,7 +51,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="3"
+MINE ="1"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -119,6 +119,26 @@ def routeFile(myssh, txt):
 # else detection -> route detection to neighbor node
 # nodes[0] : neighbor node
 # nodes[1] : source node
+# write new filech
+def changeInfo(ip):
+    global num_of_nodes
+    global txt
+
+    num_of_nodes = num_of_nodes - 1
+
+    f = open('info.txt', 'r')
+    line = f.readline()
+    lines = f.readlines()
+    f.close()
+
+    f = open('info.txt', 'w')
+    f.write(str(num_of_nodes) + '\n')
+    txt = str(num_of_nodes) + "\n"
+    for i in lines:
+        if i != ip:
+            f.write(i)
+            txt += i
+
 def adHocNetwork(dest, src):
     condition_adhoc.acquire()
     ip=dest
@@ -140,27 +160,6 @@ def adHocNetwork(dest, src):
 def sendFile(dest, txt):
     myssh = connectToPi(ip=dest)
     routeFile(myssh, txt)
-
-
-# write new filech
-def changeInfo(ip):
-    global num_of_nodes
-    global txt
-
-    num_of_nodes = num_of_nodes - 1
-
-    f = open('info.txt', 'r')
-    line = f.readline()
-    lines = f.readlines()
-    f.close()
-
-    f = open('info.txt', 'w')
-    f.write(str(num_of_nodes) + '\n')
-    txt = str(num_of_nodes) + "\n"
-    for i in lines:
-        if i != ip:
-            f.write(i)
-            txt += i
 
 
 # if danger > 1
@@ -401,8 +400,8 @@ class IsChangeThread(Thread):
             # couple is dead
             ### !!! HERE SEOJEONG !!!
             elif (isSSHworks == 0):
-                cmd = 'python pyaudioPlayer.py'
-                os.system(cmd)
+                #cmd = 'python pyaudioPlayer.py'
+                #os.system(cmd)
                 if int(MINE) == couple_left:  # when right side is dead (here, node 4)
                     changeInfo(ip_list[right_idx])  # write new file
                     next_node = ip_list[right_idx + 1]
@@ -512,6 +511,11 @@ class LEDThread(Thread):
                 print("several")
                 lightUpTwoLED()
 
+def getProferNode(node) :
+    for i in range(0, len(node)) :
+        if node[i].isdigit() == False :
+            return node[0:i]
+    return node
 
 def checkDetection():  # for part 3
     global TARGET_MINE
@@ -529,6 +533,7 @@ def checkDetection():  # for part 3
             f.close()
             # destPi = ROUTING_TABLE[nodes[0]]
             if IS_MANAGER == 1:
+                nodes[1] = getProferNode(nodes[1])
                 print("NODESSSS ", nodes[1])
                 alert(nodes[1])
             else:
@@ -591,13 +596,8 @@ def initializeVars():
 
     # seojeong should complete this function and call this func. when this file starts
 
-ip = "192.168.1.4"
-status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
-
-if(status == 0):
-    print("system " + ip + " is UP !")
-else :
-    print("system " + ip + " is DOWN !")
+cmd = 'python pyaudioPlayer.py'
+os.system(cmd)
 
 initializeVars()
 ProducerThread().start()
