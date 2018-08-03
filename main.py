@@ -8,6 +8,7 @@ import time
 import sys
 import RPi.GPIO as GPIO
 import os, sys
+import subprocess as sp
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -120,8 +121,17 @@ def routeFile(myssh, txt):
 # nodes[1] : source node
 def adHocNetwork(dest, src):
     condition_adhoc.acquire()
-    myssh = connectToPi(ip=dest)
-    routeDetection(myssh, src)
+    ip=dest
+    status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
+
+    if(status == 0):
+        myssh = connectToPi(ip=dest)
+        routeDetection(myssh, src)
+        print("system " + ip + " is UP !")
+    else :
+        changeInfo(ip)
+        print("system " + ip + " is DOWN !") ##############################3
+        
     condition_adhoc.notify()
     condition_adhoc.release()
     time.sleep(random.random())
@@ -349,54 +359,50 @@ class IsChangeThread(Thread):
                 # sys.exit(1)
                 #print("couple_right",couple_right)
                 if (int(MINE) == couple_left):
-                    try:
-                        myssh = connectToPi(ip=ip_list[right_idx])
-                        isSSHworks = 1
-                        print("ssh success : ", ip_list[right_idx])
-                    except paramiko.ssh_exception.AuthenticationException:
-                        isSSHworks=0
-                        print("ssh fail")
-                    except paramiko.ssh_exception.NoValidConnectionsError:
-                        isSSHworks = 0
-                        print("ssh fail")
-                elif (int(MINE) == couple_right):
-                    #print("herehererehrlajr;lkej ;rakjs")
-                    try:
-                        #print("left_idx",left_idx)
-                        #print("ip_list[left_idx]",ip_list[left_idx])
-                        myssh = connectToPi(ip=ip_list[left_idx])
-                        #print("ip_list[left_idx]",ip_list[left_idx])
-                        isSSHworks = 1
-                        print("ssh success : ", ip_list[left_idx])
-                    except paramiko.ssh_exception.AuthenticationException:
-                        isSSHworks=0
-                        print("ssh fail")
-                    except paramiko.ssh_exception.NoValidConnectionsError:
-                        isSSHworks = 0
-                        print("ssh fail")
+                    ip=ip_list[right_idx]
+                    status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
 
-                else:
-                    try:
-                        myssh = connectToPi(ip=ip_list[my_idx + 1])
+                    if(status == 0):
                         isSSHworks = 1
-                        print("ssh success : ", ip_list[my_idx + 1])
-                    except paramiko.ssh_exception.AuthenticationException:
-                        isSSHworks=0
-                        print("ssh fail")
-                    except paramiko.ssh_exception.NoValidConnectionsError:
+                        print("system " + ip + " is UP !")
+                    else :
                         isSSHworks = 0
-                        print("ssh fail")
-    
+                        print("system " + ip + " is DOWN !")
+                            
+                elif (int(MINE) == couple_right):
+                    ip=ip_list[left_idx]
+                    status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
+
+                    if(status == 0):
+                        isSSHworks = 1
+                        print("system " + ip + " is UP !")
+                    else :
+                        isSSHworks = 0
+                        print("system " + ip + " is DOWN !")
+                    
+                else:
+                    ip=ip_list[my_idx + 1]
+                    status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
+
+                    if(status == 0):
+                        isSSHworks = 1
+                        print("system " + ip + " is UP !")
+                    else :
+                        isSSHworks = 0
+                        print("system " + ip + " is DOWN !")
+                    
             if (isSSHworks == 1):
                 if (flag == 1):
                     if (IS_MANAGER == 0) :
-                        sendFile(my_idx + 1, temptxt)
-                        sendFile(my_idx - 1, temptxt)
+                        sendFile(ip_list[my_idx + 1], temptxt)
+                        sendFile(ip_list[my_idx - 1], temptxt)
 
 
             # couple is dead
             ### !!! HERE SEOJEONG !!!
             elif (isSSHworks == 0):
+                cmd = 'python pyaudioPlayer.py'
+                os.system(cmd)
                 if int(MINE) == couple_left:  # when right side is dead (here, node 4)
                     changeInfo(ip_list[right_idx])  # write new file
                     next_node = ip_list[right_idx + 1]
@@ -560,7 +566,7 @@ def initializeVars():
     node_list = [None] * (node_num_file)
     for i in range(0, node_num_file):
         temp_ip[i] = f.readline()
-        print("temp_ip[i]", temp_ip[i])
+        #print("temp_ip[i]", temp_ip[i])
         node_list[i] = int(temp_ip[i][10:])
         if node_list[i] == int(MINE) :
             my_idx = i
@@ -585,14 +591,19 @@ def initializeVars():
 
     # seojeong should complete this function and call this func. when this file starts
 
-#cmd = 'python pyaudioPlayer.py'
-#os.system(cmd)
+ip = "192.168.1.4"
+status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
+
+if(status == 0):
+    print("system " + ip + " is UP !")
+else :
+    print("system " + ip + " is DOWN !")
 
 initializeVars()
 ProducerThread().start()
 
-consumerList = [ConsumerThread() for i in range(0, 10)]
-for i in range(0, 10):
+consumerList = [ConsumerThread() for i in range(0, 6)]
+for i in range(0, 6):
     consumerList[i].start()
 
 IsChangeThread().start()
