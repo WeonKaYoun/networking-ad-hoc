@@ -167,11 +167,11 @@ def sendFile(dest, txt):
 # else 0
 # return randNum
 def isDanger(sound):  # for part 2
-    #y_pred = getDetectionResult(sound)
+    pred = getDetectionResult(sound)
     #print('\t',y_pred)
     
-    randNum = random.randrange(0, 2)
-    return randNum
+    #randNum = random.randrange(0, 2)
+    return pred
 
 
 def alert(detectedNode):
