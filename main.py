@@ -126,13 +126,29 @@ def changeInfo(ip):
     global txt
 
     num_of_nodes = num_of_nodes - 1
-
-    f = open('info.txt', 'r')
+    
+    while True:
+        try:
+            f = open('info.txt', 'r')
+        except FileNotFoundError:
+            print("info.txt File Not Found Error ! I try again!")
+        else:
+            break
+    
+    #f = open('info.txt', 'r')
     line = f.readline()
     lines = f.readlines()
     f.close()
-
-    f = open('info.txt', 'w')
+    
+    while True:
+        try:
+            f = open('info.txt', 'w')
+        except FileNotFoundError:
+            print("info.txt File Not Found Error ! I try again!")
+        else:
+            break
+    
+    #f = open('info.txt', 'w')
     f.write(str(num_of_nodes) + '\n')
     txt = str(num_of_nodes) + "\n"
     for i in lines:
@@ -314,7 +330,15 @@ class IsChangeThread(Thread):
         global my_idx
 
         while True:
-            f = open('info.txt', 'r')
+            while True:
+                try:
+                    f = open('info.txt', 'r')
+                except FileNotFoundError:
+                    print("info.txt File Not Found Error ! I try again!")
+                else:
+                    break
+            
+            #f = open('info.txt', 'r')
             line = f.readline()
             node_num_file = int(line)
             temptxt = line
@@ -440,7 +464,15 @@ class IsChangeThread(Thread):
                         #else :
                             #del ALERT_TABLE[node_list[my_idx+1]]
                 
-                f = open('info.txt', 'r')
+                while True:
+                    try:
+                        f = open('info.txt', 'r')
+                    except FileNotFoundError:
+                        print("info.txt File Not Found Error ! I try again!")
+                    else:
+                        break
+                
+                #f = open('info.txt', 'r')
                 line = f.readline()
                 node_num_file = int(line)
                 ip_list = [None] * (node_num_file)
@@ -464,7 +496,14 @@ class IsChangeThread(Thread):
 def checkFile():
     while True:
         for i in range(0, 5):
-            f = open(INPUT_FILE[i], 'r')
+            while True:
+                try:
+                    f = open(INPUT_FILE[i], 'r')
+                except FileNotFoundError:
+                    print(INPUT_FILE[i]+ "File Not Found Error ! I try again!")
+                else:
+                    break
+            #f = open(INPUT_FILE[i], 'r')
             line = f.readline()
             # print("checked file : " + line)
             if idx == line.find('from'):
@@ -531,7 +570,14 @@ def getProferNode(node) :
 def checkDetection():  # for part 3
     global TARGET_MINE
     while True:
-        f = open(INPUT_FILE[TARGET_MINE], 'r')
+        while True:
+            try:
+                f = open(INPUT_FILE[TARGET_MINE], 'r')
+            except FileNotFoundError:
+                print(NPUT_FILE[TARGET_MINE]+ "File Not Found Error ! I try again!")
+            else:
+                break
+        #f = open(INPUT_FILE[TARGET_MINE], 'r')
         line = f.readline()
         idx = line.find('from')
         condition_detect.acquire()
@@ -570,8 +616,16 @@ def initializeVars():
     global ROUTE_PATH
     global my_idx
     global ALERT_TABLE
-
-    f = open(INFO_FILE, 'r')
+    
+    while True:
+        try:
+            f = open(INFO_FILE, 'r')
+        except FileNotFoundError:
+            print(INFO_FILE+ "File Not Found Error ! I try again!")
+        else:
+            break
+    
+    #f = open(INFO_FILE, 'r')
     line = f.readline()
     node_num_file = int(line)
     num_of_nodes = int(line)
