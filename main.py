@@ -171,8 +171,8 @@ def isDanger(sound):  # for part 2
     #print('\t',y_pred)
     
     pred = random.randrange(0, 2)
-   # return pred
-   return 1
+    #return pred
+    return 0
 
 
 def alert(detectedNode):
