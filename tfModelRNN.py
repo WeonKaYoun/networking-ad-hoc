@@ -78,4 +78,16 @@ def getDetectionResult(sound):
     #raw = Audio.getStream(sample_rate = 44100, chunk_size = 8192,chunk_num = 3, isWrite=True)
     dataX = extractFeature(sound)
     y_pred = sess.run(tf.argmax(Y_pred,1), feed_dict={X:dataX, BatchSize: len(dataX), keep_prob:1.0 })
-    return y_pred
+    counts = np.bincount(y_pred)
+    result =  np.argmax(counts)
+    
+    if result == 0:
+        rs = 0
+        print(' 드론-Unload-',result)
+    elif result == 1:
+        rs = 1
+        print(' 드론-Load-',result)
+    else :
+        rs = 0
+        print(' None-',result)
+    return rs
