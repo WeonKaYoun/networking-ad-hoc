@@ -3,6 +3,7 @@ import paramiko
 import random
 import pyaudio
 import wave
+import threading
 from threading import Thread, Condition
 import time
 import sys
@@ -52,7 +53,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="1"
+MINE ="4"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -164,6 +165,7 @@ def adHocNetwork(dest, src):
     if(status == 0):
         myssh = connectToPi(ip=dest)
         routeDetection(myssh, src)
+        myssh.close()
         print("system " + ip + " is UP !")
     else :
         changeInfo(ip)
@@ -177,6 +179,7 @@ def adHocNetwork(dest, src):
 def sendFile(dest, txt):
     myssh = connectToPi(ip=dest)
     routeFile(myssh, txt)
+    myssh.close()
 
 
 # if danger > 1
@@ -532,6 +535,11 @@ def lightUpTwoLED():
         GPIO.output(23, False)
         time.sleep(1)
 
+class CountThreadThread(Thread) :
+    def run(self) :
+        numOfThread = threading.active_count()
+        print("the roop has !! " + str(numOfThread) + "threads !!")
+        time.sleep(1)
 
 class LEDThread(Thread):
     def run(self):
@@ -674,6 +682,7 @@ def initializeVars():
 #os.system(cmd)
 
 initializeVars()
+CountThreadThread().start()
 ProducerThread().start()
 
 consumerList = [ConsumerThread() for i in range(0, 6)]
