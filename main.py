@@ -9,7 +9,7 @@ import sys
 import RPi.GPIO as GPIO
 import os, sys
 import subprocess as sp
-from tfModelRNN import *
+#from tfModelRNN import *
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -26,7 +26,7 @@ TARGET_OTHER = 0
 IS_MANAGER = 0
 
 # var for part 1 starts
-CHUNK = 1024
+CHUNK = 8192
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
@@ -38,7 +38,7 @@ stream = p.open(format=FORMAT,
                 channels=CHANNELS,
                 rate=RATE,
                 input=True,
-                frames_per_buffer=CHUNK)
+                frames_per_buffer=CHUNK,input_device_index=0, output_device_index =0)
 
 MAX_NUM = 10
 queue = [None] * MAX_NUM
@@ -166,9 +166,9 @@ def sendFile(dest, txt):
 # if danger > 1
 # else 0
 # return randNum
-def isDanger():  # for part 2
-    y_pred = getDetectionResult()
-    print('\t',y_pred)
+def isDanger(sound):  # for part 2
+    #y_pred = getDetectionResult(sound)
+    #print('\t',y_pred)
     
     randNum = random.randrange(0, 2)
     return randNum
@@ -186,7 +186,7 @@ def alert(detectedNode):
 def checkWav(sound):  # for part 2
     global isWork
     isWork = isWork + 1
-    check = isDanger()
+    check = isDanger(sound)
     #print("check : ", check)
     if check == 1:
         # should route danger to neighbor node
@@ -202,7 +202,9 @@ def soundRecord():
     for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
         data = stream.read(CHUNK, exception_on_overflow=False)
         frames.append(data)
-    return b''.join(frames)
+    frame_ = b''.join(frames)
+    audio = np.fromstring(frame_, np.int16)
+    return audio[:]/32768
 
 
 class ProducerThread(Thread):
@@ -218,7 +220,7 @@ class ProducerThread(Thread):
                 print('Queue full, producer is waiting')
                 condition_queue.wait()
                 print("Space in queue, Consumer notified the producer")
-            # input = soundRecord()
+            #input = soundRecord()
             input = 1
             queue[in_queue] = input
             in_queue = (in_queue + 1) % MAX_NUM
@@ -600,8 +602,8 @@ def initializeVars():
 
     # seojeong should complete this function and call this func. when this file starts
 
-cmd = 'python pyaudioPlayer.py'
-os.system(cmd)
+#cmd = 'python pyaudioPlayer.py'
+#os.system(cmd)
 
 initializeVars()
 ProducerThread().start()

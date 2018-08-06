@@ -74,9 +74,8 @@ saver = tf.train.Saver()
 
 saver.restore(sess, './RNN/my_RNN_model_test')
 
-def getDetectionResult():
-    raw = Audio.getStream(sample_rate = 44100, chunk_size = 8192,chunk_num = 3, isWrite=True)
-    dataX = extractFeature(raw)
-    print('123')
+def getDetectionResult(sound):
+    #raw = Audio.getStream(sample_rate = 44100, chunk_size = 8192,chunk_num = 3, isWrite=True)
+    dataX = extractFeature(sound)
     y_pred = sess.run(tf.argmax(Y_pred,1), feed_dict={X:dataX, BatchSize: len(dataX), keep_prob:1.0 })
     return y_pred
