@@ -598,7 +598,16 @@ def checkDetection():  # for part 3
             #print("in check detect fuck nodes[0]", nodes[0])
             #print("in check detect fuck nodes[1]", nodes[1])
             # print("in check detect fuck destPi", destPi)
-            f = open(INPUT_FILE[TARGET_MINE], 'w+')
+            
+            while True:
+                try:
+                    f = open(INPUT_FILE[TARGET_MINE], 'w+')
+                except FileNotFoundError:
+                    print(INPUT_FILE[TARGET_MINE] + "File Not Found Error ! I try again!")
+                else:
+                    break
+            
+            #f = open(INPUT_FILE[TARGET_MINE], 'w+')
             f.write(NO_DETECTION)
             f.close()
             TARGET_MINE = (TARGET_MINE + 1) % NUM_OF_FILE
