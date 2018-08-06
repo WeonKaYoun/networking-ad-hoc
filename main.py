@@ -171,7 +171,8 @@ def isDanger(sound):  # for part 2
     #print('\t',y_pred)
     
     pred = random.randrange(0, 2)
-    return pred
+   # return pred
+   return 1
 
 
 def alert(detectedNode):
@@ -386,7 +387,11 @@ class IsChangeThread(Thread):
                         print("system " + ip + " is DOWN !")
                     
                 else:
-                    ip=ip_list[my_idx + 1]
+                    if (node_list[my_idx] < mid) :
+                        ip = ip_list[my_idx - 1]
+                    elif (node_list[my_idx] >= mid) :
+                        ip = ip_list[my_idx + 1]
+                          
                     status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
 
                     if(status == 0):
