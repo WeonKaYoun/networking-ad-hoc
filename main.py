@@ -9,6 +9,7 @@ import sys
 import RPi.GPIO as GPIO
 import os, sys
 import subprocess as sp
+from tfModelRNN import *
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -166,8 +167,11 @@ def sendFile(dest, txt):
 # else 0
 # return randNum
 def isDanger():  # for part 2
+    y_pred = getDetectionResult()
+    print('\t',y_pred)
+    
     randNum = random.randrange(0, 2)
-    return 0
+    return randNum
 
 
 def alert(detectedNode):
