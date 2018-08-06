@@ -73,7 +73,7 @@ optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
 sess = tf.Session()
 saver = tf.train.Saver()
-saver.restore(sess, './Dense/my_test_model_cnn')
+saver.restore(sess, './Dense/my_test_model_dense')
 
 def getDetectionResult(sound):
     #raw = Audio.getStream(sample_rate = 22050, chunk_size = 8192, chunk_num = 1, isWrite=True)
