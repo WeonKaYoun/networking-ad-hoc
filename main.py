@@ -10,7 +10,7 @@ import sys
 import RPi.GPIO as GPIO
 import os, sys
 import subprocess as sp
-#from tfModelRNN import *
+from tfModelRNN import *
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -53,7 +53,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="6"
+MINE ="4"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -194,12 +194,12 @@ def sendFile(dest, txt):
 # else 0
 # return randNum
 def isDanger(sound):  # for part 2
-    #pred = getDetectionResult(sound)
+    pred = getDetectionResult(sound)
     #print('\t',y_pred)
     
-    pred = random.randrange(0, 2)
-    #return pred
-    return 0
+    #pred = random.randrange(0, 2)
+    return pred
+    #return 0
 
 
 def alert(detectedNode):
@@ -248,8 +248,8 @@ class ProducerThread(Thread):
                 print('Queue full, producer is waiting')
                 condition_queue.wait()
                 print("Space in queue, Consumer notified the producer")
-            #input = soundRecord()
-            input = 1
+            input = soundRecord()
+            #input = 1
             queue[in_queue] = input
             in_queue = (in_queue + 1) % MAX_NUM
             count += 1
@@ -390,7 +390,8 @@ class IsChangeThread(Thread):
                         break
                     if i == (num_of_nodes -1) :
                         del_idx = i+1
-                del ALERT_TABLE[org_node_list[del_idx]]
+                if IS_MANAGER == 1:
+                    del ALERT_TABLE[org_node_list[del_idx]]
 
             # Couple setting
             isYouCouple()
