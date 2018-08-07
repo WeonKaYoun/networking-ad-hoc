@@ -53,7 +53,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="4"
+MINE ="6"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -73,6 +73,7 @@ left_idx = -1
 right_idx =0
 my_idx = 0
 managers = []
+mid = 0
 
 ALERT_TABLE = {}  # NODE : IS_DETECTED // !!! should change this !!!
 # numOfNode = 3
@@ -160,16 +161,23 @@ def changeInfo(ip):
 def adHocNetwork(dest, src):
     condition_adhoc.acquire()
     ip=dest
-    status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
-
-    if(status == 0):
-        myssh = connectToPi(ip=dest)
-        routeDetection(myssh, src)
-        myssh.close()
-        print("system " + ip + " is UP !")
-    else :
-        changeInfo(ip)
-        print("system " + ip + " is DOWN !") ##############################3
+    cnt = 0
+    while True:
+        status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
+    
+        if(status != 0 and cnt >2):
+            myssh = connectToPi(ip=dest)
+            routeDetection(myssh, src)
+            myssh.close()
+            cnt = 0
+            print("system " + ip + " is DOWN !")
+            break
+        elif(status != 0):
+            cnt = cnt + 1
+        else :
+            changeInfo(ip)
+            print("system " + ip + " is UP !")
+            break
         
     condition_adhoc.notify()
     condition_adhoc.release()
@@ -283,13 +291,15 @@ def isManager(managerList, myPiAddress):
 
 
 def isYouCouple():
-    mid = (node_list[0] + node_list[num_of_nodes - 1]) / 2
+    
     # set couple_left , couple_right
     global couple_left
     global couple_right
     global left_idx
     global right_idx
-
+    global mid
+    
+    mid = (node_list[0] + node_list[num_of_nodes - 1]) / 2
     couple_left = 0
     couple_right = 999999
 
@@ -331,6 +341,7 @@ class IsChangeThread(Thread):
         global left_idx
         global right_idx
         global my_idx
+        global mid
 
         while True:
             while True:
@@ -393,40 +404,61 @@ class IsChangeThread(Thread):
                 #print("couple_right",couple_right)
                 if (int(MINE) == couple_left):
                     ip=ip_list[right_idx]
-                    status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
-
-                    if(status == 0):
-                        isSSHworks = 1
-                        print("system " + ip + " is UP !")
-                    else :
-                        isSSHworks = 0
-                        print("system " + ip + " is DOWN !")
+                    cnt = 0
+                    while True:
+                        status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
+    
+                        if(status != 0 and cnt >2):
+                            isSSHworks = 0
+                            print("system " + ip + " is DOWN !")
+                            cnt = 0
+                            break
+                        elif(status != 0):
+                            cnt = cnt + 1
+                        else:
+                            isSSHworks=1
+                            print("system " + ip + " is UP !")
+                            break
+               
                             
                 elif (int(MINE) == couple_right):
                     ip=ip_list[left_idx]
-                    status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
-
-                    if(status == 0):
-                        isSSHworks = 1
-                        print("system " + ip + " is UP !")
-                    else :
-                        isSSHworks = 0
-                        print("system " + ip + " is DOWN !")
-                    
+                    cnt = 0
+                    while True:
+                        status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
+    
+                        if(status != 0 and cnt >2):
+                            isSSHworks = 0
+                            print("system " + ip + " is DOWN !")
+                            cnt = 0
+                            break
+                        elif(status != 0):
+                            cnt = cnt + 1
+                        else:
+                            isSSHworks=1
+                            print("system " + ip + " is UP !")
+                            break                 
                 else:
                     if (node_list[my_idx] < mid) :
                         ip = ip_list[my_idx - 1]
                     elif (node_list[my_idx] >= mid) :
                         ip = ip_list[my_idx + 1]
                           
-                    status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
-
-                    if(status == 0):
-                        isSSHworks = 1
-                        print("system " + ip + " is UP !")
-                    else :
-                        isSSHworks = 0
-                        print("system " + ip + " is DOWN !")
+                    cnt = 0
+                    while True:
+                        status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
+    
+                        if(status != 0 and cnt >2):
+                            isSSHworks = 0
+                            print("system " + ip + " is DOWN !")
+                            cnt = 0
+                            break
+                        elif(status != 0):
+                            cnt = cnt + 1
+                        else:
+                            isSSHworks=1
+                            print("system " + ip + " is UP !")
+                            break
                     
             if (isSSHworks == 1):
                 if (flag == 1):
