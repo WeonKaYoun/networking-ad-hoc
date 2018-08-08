@@ -53,7 +53,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="5"
+MINE ="1"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -165,16 +165,16 @@ def adHocNetwork(dest, src):
         status,result = sp.getstatusoutput("ping -c1 -w2 " + ip)
     
         if(status != 0 and cnt >2):
-            myssh = connectToPi(ip=dest)
-            routeDetection(myssh, src)
-            myssh.close()
             cnt = 0
+            changeInfo(ip)
             print("system " + ip + " is DOWN !")
             break
         elif(status != 0):
             cnt = cnt + 1
         else :
-            #changeInfo(ip)
+            myssh = connectToPi(ip=dest)
+            routeDetection(myssh, src)
+            myssh.close()
             print("system " + ip + " is UP !")
             break
         
@@ -206,6 +206,7 @@ def alert(detectedNode):
     condition_alert.acquire()
     if ALERT_TABLE[idx] == 0:
         ALERT_TABLE[idx] = 1
+        print(str(idx)+"th node detected")
     condition_alert.notify()
     condition_alert.release()
 
@@ -553,6 +554,7 @@ def checkFile():
                 length = len(line)
                 line = line[idx+4:length-1]
                 f.close()
+                print("calling alert func.")
                 alert(int(line))
 
 
@@ -590,12 +592,19 @@ class LEDThread(Thread):
             isMiddle = 0
             condition_alert.acquire()
             for i in range(1, num_of_nodes + 1):
-                if ALERT_TABLE[i] == 1:
-                    print(str(i) + "node detected")
-                    howManyDetected = howManyDetected + 1
-                    ALERT_TABLE[i] = 0
-                    if i == couple_left or i == couple_right:
-                        isMiddle = 1
+                try :
+                    if ALERT_TABLE[node_list[i]] == 1:
+                        print(str(node_list[i]) + "node detected")
+                        howManyDetected = howManyDetected + 1
+                        ALERT_TABLE[node_list[i]] = 0
+                        if node_list[i] == couple_left or node_list[i] == couple_right:
+                            isMiddle = 1
+                    else :
+                        print("no detection")
+                except IndexError :
+                    print("wrong access to ALERT_TABLE")
+                except KeyError :
+                    print("wrong access to ALERT_TABLE , keyError")
             condition_alert.notify()
             condition_alert.release()
             #print("3 " + str(howManyDetected))
@@ -738,3 +747,4 @@ checkDetection()  # for part 3
 # start()
 # sendFile(next_node,txt)
 # sendFile(pre_node,txt)
+
