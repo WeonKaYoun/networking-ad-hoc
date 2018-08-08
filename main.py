@@ -10,7 +10,7 @@ import sys
 import RPi.GPIO as GPIO
 import os, sys
 import subprocess as sp
-from tfModelRNN import *
+#from tfModelRNN import *
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -53,7 +53,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="4"
+MINE ="5"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -132,10 +132,10 @@ def changeInfo(ip):
     while True:
         try:
             f = open('info.txt', 'r')
+            break
         except FileNotFoundError:
             print("info.txt File Not Found Error ! I try again!")
-        else:
-            break
+       
     
     #f = open('info.txt', 'r')
     line = f.readline()
@@ -145,11 +145,10 @@ def changeInfo(ip):
     while True:
         try:
             f = open('info.txt', 'w')
+            break
         except FileNotFoundError:
             print("info.txt File Not Found Error ! I try again!")
-        else:
-            break
-    
+        
     #f = open('info.txt', 'w')
     f.write(str(num_of_nodes) + '\n')
     txt = str(num_of_nodes) + "\n"
@@ -175,7 +174,7 @@ def adHocNetwork(dest, src):
         elif(status != 0):
             cnt = cnt + 1
         else :
-            changeInfo(ip)
+            #changeInfo(ip)
             print("system " + ip + " is UP !")
             break
         
@@ -194,12 +193,12 @@ def sendFile(dest, txt):
 # else 0
 # return randNum
 def isDanger(sound):  # for part 2
-    pred = getDetectionResult(sound)
+    #pred = getDetectionResult(sound)
     #print('\t',y_pred)
     
     #pred = random.randrange(0, 2)
-    return pred
-    #return 0
+    #return pred
+    return 0
 
 
 def alert(detectedNode):
@@ -248,8 +247,8 @@ class ProducerThread(Thread):
                 print('Queue full, producer is waiting')
                 condition_queue.wait()
                 print("Space in queue, Consumer notified the producer")
-            input = soundRecord()
-            #input = 1
+            #input = soundRecord()
+            input = 1
             queue[in_queue] = input
             in_queue = (in_queue + 1) % MAX_NUM
             count += 1
@@ -347,10 +346,9 @@ class IsChangeThread(Thread):
             while True:
                 try:
                     f = open('info.txt', 'r')
+                    break
                 except FileNotFoundError:
                     print("info.txt File Not Found Error ! I try again!")
-                else:
-                    break
             
             #f = open('info.txt', 'r')
             line = f.readline()
@@ -464,8 +462,10 @@ class IsChangeThread(Thread):
             if (isSSHworks == 1):
                 if (flag == 1):
                     if (IS_MANAGER == 0) :
-                        sendFile(ip_list[my_idx + 1], temptxt)
-                        sendFile(ip_list[my_idx - 1], temptxt)
+                        if (del_idx < my_idx) :
+                            sendFile(ip_list[my_idx + 1], temptxt)
+                        else :
+                            sendFile(ip_list[my_idx - 1], temptxt)
 
 
             # couple is dead
@@ -489,9 +489,16 @@ class IsChangeThread(Thread):
 
                 else:
                     if IS_MANAGER == 0 :
-                        changeInfo(ip_list[my_idx + 1])  # write new file
-                        next_node = ip_list[my_idx + 2]
-                        pre_node = ip_list[my_idx - 1]
+                        if (node_list[my_idx] < mid) :
+                            changeInfo(ip_list[my_idx - 1])  # write new file
+                            next_node = ip_list[my_idx + 1]
+                            pre_node = ip_list[my_idx - 2]
+                        
+                        elif (node_list[my_idx] >= mid) :
+                            changeInfo(ip_list[my_idx + 1])  # write new file
+                            next_node = ip_list[my_idx + 2]
+                            pre_node = ip_list[my_idx - 1]
+                        
                         sendFile(next_node, txt)  # send file to next node
                         sendFile(pre_node, txt)  # send file to previous node
                     #elif IS_MANAGER == 1 :
@@ -503,11 +510,10 @@ class IsChangeThread(Thread):
                 while True:
                     try:
                         f = open('info.txt', 'r')
+                        break
                     except FileNotFoundError:
                         print("info.txt File Not Found Error ! I try again!")
-                    else:
-                        break
-                
+            
                 #f = open('info.txt', 'r')
                 line = f.readline()
                 node_num_file = int(line)
@@ -535,10 +541,10 @@ def checkFile():
             while True:
                 try:
                     f = open(INPUT_FILE[i], 'r')
+                    break
                 except FileNotFoundError:
                     print(INPUT_FILE[i]+ "File Not Found Error ! I try again!")
-                else:
-                    break
+
             #f = open(INPUT_FILE[i], 'r')
             line = f.readline()
             # print("checked file : " + line)
@@ -614,10 +620,10 @@ def checkDetection():  # for part 3
         while True:
             try:
                 f = open(INPUT_FILE[TARGET_MINE], 'r')
+                break
             except FileNotFoundError:
                 print(NPUT_FILE[TARGET_MINE]+ "File Not Found Error ! I try again!")
-            else:
-                break
+        
         #f = open(INPUT_FILE[TARGET_MINE], 'r')
         line = f.readline()
         idx = line.find('from')
@@ -643,11 +649,10 @@ def checkDetection():  # for part 3
             while True:
                 try:
                     f = open(INPUT_FILE[TARGET_MINE], 'w+')
+                    break
                 except FileNotFoundError:
                     print(INPUT_FILE[TARGET_MINE] + "File Not Found Error ! I try again!")
-                else:
-                    break
-            
+                
             #f = open(INPUT_FILE[TARGET_MINE], 'w+')
             f.write(NO_DETECTION)
             f.close()
@@ -670,10 +675,10 @@ def initializeVars():
     while True:
         try:
             f = open(INFO_FILE, 'r')
+            break
         except FileNotFoundError:
             print(INFO_FILE+ "File Not Found Error ! I try again!")
-        else:
-            break
+        
     
     #f = open(INFO_FILE, 'r')
     line = f.readline()
