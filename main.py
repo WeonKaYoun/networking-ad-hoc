@@ -355,6 +355,7 @@ class IsChangeThread(Thread):
             node_num_file = int(line)
             temptxt = line
             start_of_nodeId = int(f.readline())
+            temptxt = temptxt + str(start_of_nodeId) + "\n"
             ip_list = [None] * (node_num_file)
             org_node_list = list(node_list)
             node_list = [None] * (node_num_file)
@@ -462,7 +463,7 @@ class IsChangeThread(Thread):
             if (isSSHworks == 1):
                 if (flag == 1):
                     if (IS_MANAGER == 0) :
-                        if (del_idx < my_idx) :
+                        if (int(org_node_list[del_idx]) < int(MINE)) :
                             sendFile(ip_list[my_idx + 1], temptxt)
                         else :
                             sendFile(ip_list[my_idx - 1], temptxt)
@@ -622,7 +623,7 @@ def checkDetection():  # for part 3
                 f = open(INPUT_FILE[TARGET_MINE], 'r')
                 break
             except FileNotFoundError:
-                print(NPUT_FILE[TARGET_MINE]+ "File Not Found Error ! I try again!")
+                print(INPUT_FILE[TARGET_MINE]+ "File Not Found Error ! I try again!")
         
         #f = open(INPUT_FILE[TARGET_MINE], 'r')
         line = f.readline()
