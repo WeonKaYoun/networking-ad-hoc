@@ -53,7 +53,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="1"
+MINE ="3"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -290,8 +290,9 @@ class ConsumerThread(Thread):
 def isManager(myPiAddress):
     global managers
     global managerList
-    managerList = managerList[0:len(managerList)-1]
+    #managerList = managerList[0:len(managerList)-1]
     managers = managerList.split(" ")
+    managers[1] = getProferNode(managers[1])
     for i in range(0, len(managers)):
         if (managers[i] == str(myPiAddress)):
             return 1
@@ -351,6 +352,7 @@ class IsChangeThread(Thread):
         global my_idx
         global mid
         global managers
+        global managerList
 
         while True:
             while True:
@@ -482,7 +484,7 @@ class IsChangeThread(Thread):
             # couple is dead
             ### !!! HERE SEOJEONG !!!
             elif (isSSHworks == 0):
-                #cmd = 'python pyaudioPlayer.py'
+                #cmd = 'python pyissshworksaudioPlayer.py'
                 #os.system(cmd)
                 
                 
@@ -510,11 +512,23 @@ class IsChangeThread(Thread):
                                 #managers = managerList.split(" ")
                                 for i in range(0, len(managers)):
                                     if (managers[i] == str(node_list[my_idx-1])):
-                                        managers[i] = node_list[my_idx]
+                                        managers[i] = str(node_list[my_idx])
+                                    else :
+                                        managers[i] = managers[i]
                                 managerList = str(managers[0]) + " " + str(managers[1]) + "\n"
-                            changeInfo(ip_list[my_idx - 1])  # write new file
-                            next_node = ip_list[my_idx + 1]
-                            pre_node = ip_list[my_idx - 2]
+                                IS_MANAGER = 1
+                                lightUpOneLED()
+                                LEDThread().start()
+                                CheckFileThread().start()
+                                changeInfo(ip_list[my_idx - 1])
+                                next_node = ip_list[my_idx + 1]
+                                sendFile(next_node, txt)  # send file to next node
+                            else:
+                                changeInfo(ip_list[my_idx - 1])  # write new file
+                                next_node = ip_list[my_idx + 1]
+                                pre_node = ip_list[my_idx - 2]
+                                sendFile(next_node, txt)  # send file to next node
+                                sendFile(pre_node, txt)  # send file to previous node
                         
                         elif (node_list[my_idx] >= mid) :
                             if isManager(node_list[my_idx+1]) == 1:
@@ -523,14 +537,24 @@ class IsChangeThread(Thread):
                                 #managers = managerList.split(" ")
                                 for i in range(0, len(managers)):
                                     if (managers[i] == str(node_list[my_idx+1])):
-                                        managers[i] = node_list[my_idx]
+                                        managers[i] = str(node_list[my_idx])
                                 managerList = str(managers[0]) + " " + str(managers[1]) + "\n"
-                            changeInfo(ip_list[my_idx + 1])  # write new file
-                            next_node = ip_list[my_idx + 2]
-                            pre_node = ip_list[my_idx - 1]
+                                IS_MANAGER = 1
+                                lightUpOneLED()
+                                LEDThread().start()
+                                CheckFileThread().start()
+                                changeInfo(ip_list[my_idx + 1])  # write new file
+                                pre_node = ip_list[my_idx - 1]
+                                sendFile(pre_node, txt)  # send file to previous node
+                            else:
+                                changeInfo(ip_list[my_idx + 1])  # write new file
+                                next_node = ip_list[my_idx + 2]
+                                pre_node = ip_list[my_idx - 1]
+                                sendFile(next_node, txt)  # send file to next node
+                                sendFile(pre_node, txt)  # send file to previous node
+                            
                         
-                        sendFile(next_node, txt)  # send file to next node
-                        sendFile(pre_node, txt)  # send file to previous node
+                        
                     #elif IS_MANAGER == 1 :
                        # if int(MINE) > couple_right :
                             #del ALERT_TABLE[node_list[my_idx-1]]
