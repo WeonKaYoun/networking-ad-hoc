@@ -53,7 +53,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="3"
+MINE ="1"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -73,6 +73,7 @@ left_idx = -1
 right_idx =0
 my_idx = 0
 managers = []
+managerList = ""
 mid = 0
 
 ALERT_TABLE = {}  # NODE : IS_DETECTED // !!! should change this !!!
@@ -286,8 +287,9 @@ class ConsumerThread(Thread):
 
 
 
-def isManager(managerList, myPiAddress):
+def isManager(myPiAddress):
     global managers
+    global managerList
     managerList = managerList[0:len(managerList)-1]
     managers = managerList.split(" ")
     for i in range(0, len(managers)):
@@ -389,7 +391,7 @@ class IsChangeThread(Thread):
             temptxt = temptxt + managerList + "\n"
             f.close()
             #print(temptxt)
-            IS_MANAGER = isManager(managerList, node_list[my_idx])
+            IS_MANAGER = isManager(node_list[my_idx])
             if flag == 1:
                 for i in range(0, num_of_nodes) :
                     if org_node_list[i] != node_list[i] :
@@ -502,7 +504,7 @@ class IsChangeThread(Thread):
                 else:
                     if IS_MANAGER == 0 :
                         if (node_list[my_idx] < mid) :
-                            if isManager(managerList, node_list[my_idx-1]) == 1:
+                            if isManager(node_list[my_idx-1]) == 1:
                                 if start_of_nodeId == node_list[my_idx-1] :
                                     start_of_nodeId = node_list[my_idx]
                                 #managers = managerList.split(" ")
@@ -515,7 +517,7 @@ class IsChangeThread(Thread):
                             pre_node = ip_list[my_idx - 2]
                         
                         elif (node_list[my_idx] >= mid) :
-                             if isManager(managerList, node_list[my_idx+1]) == 1:
+                            if isManager(node_list[my_idx+1]) == 1:
                                 if start_of_nodeId == node_list[my_idx+1] :
                                     start_of_nodeId = node_list[my_idx]
                                 #managers = managerList.split(" ")
@@ -565,24 +567,31 @@ class IsChangeThread(Thread):
 
 def checkFile():
     while True:
+        print("in checkFile func")
         for i in range(0, 5):
             while True:
                 try:
                     f = open(INPUT_FILE[i], 'r')
+                    print("checking " + str(i) +"th file")
                     break
                 except FileNotFoundError:
                     print(INPUT_FILE[i]+ "File Not Found Error ! I try again!")
 
             #f = open(INPUT_FILE[i], 'r')
             line = f.readline()
-            # print("checked file : " + line)
-            if idx == line.find('from'):
-                length = len(line)
-                line = line[idx+4:length-1]
+            idx = line.find('from')
+            
+            if idx == -1:
                 f.close()
-                print("calling alert func.")
-                alert(int(line))
+            else :
+                # print("checked file : " + line)
+                nodes = line.split("from")
+                nodes[1] = getProferNode(nodes[1])
+                alert(int(nodes[1]))
 
+class CheckFileThread(Thread) :
+    def run(self) :
+        checkFile()
 
 def lightUpOneLED():
     for i in range(0, 2):
@@ -626,11 +635,14 @@ class LEDThread(Thread):
                         if node_list[i] == couple_left or node_list[i] == couple_right:
                             isMiddle = 1
                     else :
-                        print("no detection")
+                        #print("no detection")
+                        block = 0
                 except IndexError :
-                    print("wrong access to ALERT_TABLE")
+                    block = 1
+                    #print("wrong access to ALERT_TABLE")
                 except KeyError :
-                    print("wrong access to ALERT_TABLE , keyError")
+                    block = 2
+                    #print("wrong access to ALERT_TABLE , keyError")
             condition_alert.notify()
             condition_alert.release()
             #print("3 " + str(howManyDetected))
@@ -674,7 +686,6 @@ def checkDetection():  # for part 3
             # destPi = ROUTING_TABLE[nodes[0]]
             if IS_MANAGER == 1:
                 nodes[1] = getProferNode(nodes[1])
-                print("NODESSSS ", nodes[1])
                 alert(nodes[1])
             else:
                 adHocNetwork(ROUTE_PATH, nodes[1])
@@ -707,6 +718,7 @@ def initializeVars():
     global ROUTE_PATH
     global my_idx
     global ALERT_TABLE
+    global managerList
     
     while True:
         try:
@@ -734,7 +746,7 @@ def initializeVars():
     isYouCouple()
     managerList = f.readline()
     #print(temp_ip[my_idx])
-    IS_MANAGER = isManager(managerList, node_list[my_idx])
+    IS_MANAGER = isManager(node_list[my_idx])
     #print("IS MA", IS_MANAGER)
     #print("couple_left",couple_left)
     if IS_MANAGER == 0 :
@@ -766,7 +778,9 @@ for i in range(0, 6):
 IsChangeThread().start()
 
 if IS_MANAGER == 1:
+    #lightUpOneLED()
     LEDThread().start()
+    CheckFileThread().start()
 
 checkDetection()  # for part 3
 
