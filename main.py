@@ -53,7 +53,7 @@ isWork = 0
 # var for part 1 ends
 
 # first node side
-MINE ="1"
+MINE ="3"
 #ROUTING_TABLE = {'3': 2, '2': 3}
 ROUTE_PATH = ''
 # IP_TABLE = {3: '192.168.1.3', 2: '192.168.1.2'}
@@ -126,6 +126,8 @@ def routeFile(myssh, txt):
 def changeInfo(ip):
     global num_of_nodes
     global txt
+    global managerList
+    global start_of_nodeId
 
     num_of_nodes = num_of_nodes - 1
     
@@ -139,6 +141,7 @@ def changeInfo(ip):
     
     #f = open('info.txt', 'r')
     line = f.readline()
+    trash = f.readline()
     lines = f.readlines()
     f.close()
     
@@ -151,11 +154,14 @@ def changeInfo(ip):
         
     #f = open('info.txt', 'w')
     f.write(str(num_of_nodes) + '\n')
-    txt = str(num_of_nodes) + "\n"
-    for i in lines:
-        if i != ip:
-            f.write(i)
-            txt += i
+    f.write(str(start_of_nodeId) + '\n')
+    txt = str(num_of_nodes) + "\n" + str(start_of_nodeId) + "\n"
+    for i in range(0,int(line)):
+        if lines[i] != ip:
+            f.write(lines[i])
+            txt += lines[i]
+    f.write(managerList)
+    txt += managerList
 
 def adHocNetwork(dest, src):
     condition_adhoc.acquire()
@@ -342,6 +348,7 @@ class IsChangeThread(Thread):
         global right_idx
         global my_idx
         global mid
+        global managers
 
         while True:
             while True:
@@ -475,12 +482,15 @@ class IsChangeThread(Thread):
             elif (isSSHworks == 0):
                 #cmd = 'python pyaudioPlayer.py'
                 #os.system(cmd)
+                
+                
                 if int(MINE) == couple_left:  # when right side is dead (here, node 4)
                     changeInfo(ip_list[right_idx])  # write new file
                     next_node = ip_list[right_idx + 1]
                     pre_node = ip_list[left_idx - 1]
                     sendFile(next_node, txt)
                     sendFile(pre_node, txt)
+                    
 
                 elif int(MINE) == couple_right:
                     changeInfo(ip_list[right_idx])  # write new file
@@ -492,11 +502,27 @@ class IsChangeThread(Thread):
                 else:
                     if IS_MANAGER == 0 :
                         if (node_list[my_idx] < mid) :
+                            if isManager(managerList, node_list[my_idx-1]) == 1:
+                                if start_of_nodeId == node_list[my_idx-1] :
+                                    start_of_nodeId = node_list[my_idx]
+                                #managers = managerList.split(" ")
+                                for i in range(0, len(managers)):
+                                    if (managers[i] == str(node_list[my_idx-1])):
+                                        managers[i] = node_list[my_idx]
+                                managerList = str(managers[0]) + " " + str(managers[1]) + "\n"
                             changeInfo(ip_list[my_idx - 1])  # write new file
                             next_node = ip_list[my_idx + 1]
                             pre_node = ip_list[my_idx - 2]
                         
                         elif (node_list[my_idx] >= mid) :
+                             if isManager(managerList, node_list[my_idx+1]) == 1:
+                                if start_of_nodeId == node_list[my_idx+1] :
+                                    start_of_nodeId = node_list[my_idx]
+                                #managers = managerList.split(" ")
+                                for i in range(0, len(managers)):
+                                    if (managers[i] == str(node_list[my_idx+1])):
+                                        managers[i] = node_list[my_idx]
+                                managerList = str(managers[0]) + " " + str(managers[1]) + "\n"
                             changeInfo(ip_list[my_idx + 1])  # write new file
                             next_node = ip_list[my_idx + 2]
                             pre_node = ip_list[my_idx - 1]
