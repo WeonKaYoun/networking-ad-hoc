@@ -64,7 +64,7 @@ saver.restore(sess, './CNN/cnnmodel')
 def getDetectionResult(sound):
     #raw = Audio.getStream(sample_rate = 44100, chunk_size = 8192, chunk_num = 1, isWrite=True)
     dataX = extraction(sound)
-    y_pred = sess.run(tf.argmax(logits,1),feed_dict={X: dataX, keep_prob: 1})
+    y_pred = sess.run(tf.argmax(logits,1),feed_dict={X: dataX})
     counts = np.bincount(y_pred)
     result = np.argmax(counts)
 
