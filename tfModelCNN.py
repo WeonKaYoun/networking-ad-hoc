@@ -65,6 +65,7 @@ def getDetectionResult(sound):
     #raw = Audio.getStream(sample_rate = 44100, chunk_size = 8192, chunk_num = 1, isWrite=True)
     dataX = extraction(sound)
     y_pred = sess.run(tf.argmax(logits,1),feed_dict={X: dataX})
+    y_pred = np.astype(np.int32)
     counts = np.bincount(y_pred)
     result = np.argmax(counts)
 
