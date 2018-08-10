@@ -11,7 +11,7 @@ import RPi.GPIO as GPIO
 import os, sys
 import subprocess as sp
 from scipy.io import wavfile
-from tfModelRNN import *
+from tfModelCNN import *
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -201,10 +201,12 @@ def sendFile(dest, txt):
 # else 0
 # return randNum
 def isDanger(sound):  # for part 2
+    print("thishtilsht;alkj;fljf;ekfjlej")
     pred = getDetectionResult(sound)
     #print('\t',y_pred)
     
     #pred = random.randrange(0, 2)
+    print("this is pred !!!!" + str(pred))
     return pred
     #return 0
 
@@ -220,9 +222,14 @@ def alert(detectedNode):
 
 
 def checkWav(sound):  # for part 2
+    print("chek wav")
     global isWork
     isWork = isWork + 1
-    check = isDanger(sound)
+    print(sound)
+    if type(sound) == type(None):
+        check = 0
+    else:
+        check = isDanger(sound)
     #print("check : ", check)
     if check == 1:
         # should route danger to neighbor node
@@ -232,6 +239,8 @@ def checkWav(sound):  # for part 2
             alert(int(MINE))
         else:
             adHocNetwork(ROUTE_PATH, MINE)
+    else :
+        lightUpOneLED()
 
 
 def soundRecord():
@@ -257,10 +266,11 @@ class ProducerThread(Thread):
                 print('Queue full, producer is waiting')
                 condition_queue.wait()
                 print("Space in queue, Consumer notified the producer")
-            #input = soundRecord()
-            fileNum = random.randrange(1, 11)
-            wavFilePath = "./gunhoo/"+str(fileNum)+".wav"
-            fs, input = wavfile.read(wavFilePath)
+            input = soundRecord()
+            #fileNum = random.randrange(1, 11)
+            #wavFilePath = "./gunhoo/"+str(fileNum)+".wav"
+            #print("wavFilePath :"+wavFilePath)
+            #fs, input = wavfile.read(wavFilePath)
             #input = 1
             queue[in_queue] = input
             in_queue = (in_queue + 1) % MAX_NUM
