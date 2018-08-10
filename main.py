@@ -10,7 +10,8 @@ import sys
 import RPi.GPIO as GPIO
 import os, sys
 import subprocess as sp
-#from tfModelRNN import *
+from scipy.io import wavfile
+from tfModelRNN import *
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -200,12 +201,12 @@ def sendFile(dest, txt):
 # else 0
 # return randNum
 def isDanger(sound):  # for part 2
-    #pred = getDetectionResult(sound)
+    pred = getDetectionResult(sound)
     #print('\t',y_pred)
     
     #pred = random.randrange(0, 2)
-    #return pred
-    return 0
+    return pred
+    #return 0
 
 
 def alert(detectedNode):
@@ -226,6 +227,7 @@ def checkWav(sound):  # for part 2
     if check == 1:
         # should route danger to neighbor node
         print("it is danger")
+        lightUpTwoLED()
         if IS_MANAGER == 1:
             alert(int(MINE))
         else:
@@ -256,7 +258,10 @@ class ProducerThread(Thread):
                 condition_queue.wait()
                 print("Space in queue, Consumer notified the producer")
             #input = soundRecord()
-            input = 1
+            fileNum = random.randrange(1, 11)
+            wavFilePath = "./gunhoo/"+str(fileNum)+".wav"
+            fs, input = wavfile.read(wavFilePath)
+            #input = 1
             queue[in_queue] = input
             in_queue = (in_queue + 1) % MAX_NUM
             count += 1
