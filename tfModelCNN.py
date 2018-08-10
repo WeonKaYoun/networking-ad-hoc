@@ -27,7 +27,7 @@ def mfcc4(raw, chunk_size=8192, window_size=4096, sr=44100, n_mfcc=16, n_frame=1
 
 def extraction(raw):
     soundData = mfcc4(raw)
-    dataX = np.reshape(soundData, (soundData.shape[0], -1))
+    dataX = np.reshape(soundData, (soundData.shape[0],soundData.shape[1],soundData.shape[2], 1))
     print("X: ", dataX.shape)
     print("Extract feature is finished")
     return dataX
